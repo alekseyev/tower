@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "tower"
+version = "0.1.0"
+description = "Tower of Babble"
+authors = ["Oleksii 'LXj' Aleksieiyev <gotletter@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+openai = "^0.28.1"
+motor = "^3.3.1"
+spacy = "^3.7.1"
+pydantic-settings = "^2.0.3"
+loguru = "^0.7.2"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.292"
+ipython = "^8.16.1"
+ipykernel = "^6.25.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
