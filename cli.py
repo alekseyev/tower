@@ -1,7 +1,7 @@
 import spacy
 import typer
 
-from tower.settings import settings
+from app.settings import settings
 
 app = typer.Typer()
 

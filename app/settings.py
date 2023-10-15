@@ -1,6 +1,5 @@
-from collections import defaultdict
 import json
-
+from collections import defaultdict
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -15,6 +14,9 @@ except FileNotFoundError:
 
 class Settings(BaseSettings):
     DEBUG: bool = False
+
+    MONGO_URL: str = "mongodb://root:secret@localhost:3001"
+    MONGO_DB: str = "tower"
 
     GPT_TOKEN: str = secrets["openai_token"]
     GPT_MODEL: str = "gpt-3.5-turbo"

@@ -1,6 +1,10 @@
 .PHONY: help
 
 
+install: ## Install packages
+	poetry install
+	poetry run python cli.py download-spacy-models
+
 format: ## Format with ruff
 	ruff format .
 	ruff check --fix .
