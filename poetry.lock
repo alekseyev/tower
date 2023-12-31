@@ -202,6 +202,24 @@ files = [
 ]
 
 [[package]]
+name = "beautifulsoup4"
+version = "4.12.2"
+description = "Screen-scraping library"
+optional = false
+python-versions = ">=3.6.0"
+files = [
+    {file = "beautifulsoup4-4.12.2-py3-none-any.whl", hash = "sha256:bd2520ca0d9d7d12694a53d44ac482d181b4ec1888909b035a3dbf40d0f57d4a"},
+    {file = "beautifulsoup4-4.12.2.tar.gz", hash = "sha256:492bbc69dca35d12daac71c4db1bfff0c876c00ef4a2ffacce226d4638eb72da"},
+]
+
+[package.dependencies]
+soupsieve = ">1.2"
+
+[package.extras]
+html5lib = ["html5lib"]
+lxml = ["lxml"]
+
+[[package]]
 name = "blis"
 version = "0.7.11"
 description = "The Blis BLAS-like linear algebra library, as a self-contained C-extension."
@@ -1642,6 +1660,7 @@ files = [
     {file = "pymongo-4.5.0-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:6422b6763b016f2ef2beedded0e546d6aa6ba87910f9244d86e0ac7690f75c96"},
     {file = "pymongo-4.5.0-cp312-cp312-win32.whl", hash = "sha256:77cfff95c1fafd09e940b3fdcb7b65f11442662fad611d0e69b4dd5d17a81c60"},
     {file = "pymongo-4.5.0-cp312-cp312-win_amd64.whl", hash = "sha256:e57d859b972c75ee44ea2ef4758f12821243e99de814030f69a3decb2aa86807"},
+    {file = "pymongo-4.5.0-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:8443f3a8ab2d929efa761c6ebce39a6c1dca1c9ac186ebf11b62c8fe1aef53f4"},
     {file = "pymongo-4.5.0-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:2b0176f9233a5927084c79ff80b51bd70bfd57e4f3d564f50f80238e797f0c8a"},
     {file = "pymongo-4.5.0-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:89b3f2da57a27913d15d2a07d58482f33d0a5b28abd20b8e643ab4d625e36257"},
     {file = "pymongo-4.5.0-cp37-cp37m-manylinux2014_aarch64.whl", hash = "sha256:5caee7bd08c3d36ec54617832b44985bd70c4cbd77c5b313de6f7fce0bb34f93"},
@@ -2011,6 +2030,17 @@ s3 = ["boto3"]
 ssh = ["paramiko"]
 test = ["azure-common", "azure-core", "azure-storage-blob", "boto3", "google-cloud-storage (>=2.6.0)", "moto[server]", "paramiko", "pytest", "pytest-rerunfailures", "requests", "responses"]
 webhdfs = ["requests"]
+
+[[package]]
+name = "soupsieve"
+version = "2.5"
+description = "A modern CSS selector implementation for Beautiful Soup."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "soupsieve-2.5-py3-none-any.whl", hash = "sha256:eaa337ff55a1579b6549dc679565eac1e3d000563bcb1c8ab0d0fefbc0c2cdc7"},
+    {file = "soupsieve-2.5.tar.gz", hash = "sha256:5663d5a7b3bfaeee0bc4372e7fc48f9cff4940b3eec54a6451cc5299f1097690"},
+]
 
 [[package]]
 name = "spacy"
@@ -2652,4 +2682,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "965ec0adb39cb5d741a44d7d2ab5c2c2bc21e6419c3f16e4ac5f3207171be70d"
+content-hash = "f4f5b8edae7646694116a084fcecb527a9307157d0d279e63d957ff56c83b1b6"

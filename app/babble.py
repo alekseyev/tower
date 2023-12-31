@@ -31,7 +31,7 @@ logger.info(f"Loaded {len(nlp)} Spacy models in {time.perf_counter() - start:.6}
 
 def lemmatize(lang_code: str, sentence: str) -> list[str]:
     doc = nlp[lang_code](sentence)
-    return [token.lemma_ for token in doc if token.lemma_ not in ".,¿?¡!:;"]
+    return [token.lemma_.capitalize() for token in doc if token.lemma_ not in ".,¿?¡!:;()"]
 
 
 class GPTSentences:
