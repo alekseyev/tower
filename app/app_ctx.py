@@ -1,17 +1,19 @@
 from contextlib import asynccontextmanager
 
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from beanie import init_beanie
+from motor.motor_asyncio import AsyncIOMotorClient
 
-from app.data_layer.connections import get_mongo_db
+from app.data_layer.models import BabbleSentence
 from app.settings import settings
 
 
 class AppCtx:
-    mongo_db: AsyncIOMotorDatabase
+    mongo_client: AsyncIOMotorClient
 
     @classmethod
     async def start(cls) -> None:
-        cls.mongo_db = get_mongo_db(url=settings.MONGO_URL, db=settings.MONGO_DB)
+        cls.mongo_client = AsyncIOMotorClient(settings.MONGO_URL)
+        await init_beanie(database=cls.mongo_client[settings.MONGO_DB], document_models=[BabbleSentence])
 
     @classmethod
     async def shutdown(cls) -> None:

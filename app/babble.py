@@ -7,19 +7,13 @@ import openai
 import spacy
 from bson import ObjectId
 from loguru import logger
-from pydantic import BaseModel
 
-from app.app_ctx import AppCtx
+from app.data_layer.models import BabbleSentence
 from app.settings import settings
 
 openai.api_key = settings.GPT_TOKEN
 
 json_pattern = re.compile(r"```(?:json)?(.*?)```", re.DOTALL)
-
-
-class BabbleSentence(BaseModel):
-    text: dict[str, str]  # {"en": "I went"}
-    lemmas: dict[str, list[str]]  # {"en": ["I", "go"]}
 
 
 nlp = {}
@@ -163,16 +157,13 @@ async def get_from_db(
     N: int = 10,
     exclude_ids: list[ObjectId] | None = None,
 ) -> list[BabbleSentence]:
-    collection = AppCtx.mongo_db["babble"]
     subqueries = [{"$expr": {"$setIsSubset": [f"$lemmas.{base_language}", dictionary]}}]
     if exclude_ids:
         subqueries.append({"_id": {"$nin": exclude_ids}})
     if req_dictionary:
         subqueries.append({f"lemmas.{base_language}": {"$in": req_dictionary}})
 
-    cursor = collection.find({"$and": subqueries})
-
-    return [BabbleSentence(**doc) for doc in await cursor.to_list(length=N)]
+    return await BabbleSentence.find({"$and": subqueries}).to_list()
 
 
 async def generate_and_save_sentences(
@@ -187,17 +178,16 @@ async def generate_and_save_sentences(
         base_language=base_language,
         N=N,
     )
-    collection = AppCtx.mongo_db["babble"]
 
-    found_sentences_query = collection.find(
+    found_sentences_result = await BabbleSentence.find(
         {"text.{base_language}": {"$in": [sentence.text[base_language] for sentence in sentences]}}
-    )
-    found_sentences_result = await found_sentences_query.to_list(len(sentences))
-    found_sentences = [sentence["text"][base_language] for sentence in found_sentences_result]
+    ).to_list()
+
+    found_sentences = [sentence.text[base_language] for sentence in found_sentences_result]
 
     sentences = [sentence for sentence in sentences if sentence.text[base_language] not in found_sentences]
 
-    await collection.insert_many([sentence.model_dump() for sentence in sentences])
+    await BabbleSentence.insert_many(sentences)
     return sentences
 
 

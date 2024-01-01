@@ -24,15 +24,15 @@ class Settings(BaseSettings):
     SPACY_MODELS: dict[str, str] = {
         "en": "en_core_web_sm",
         "es": "es_core_news_sm",
-        "fr": "fr_core_news_sm",
-        "uk": "uk_core_news_sm",
+        # "fr": "fr_core_news_sm",
+        # "uk": "uk_core_news_sm",
     }
 
     LANGUAGES: dict[str, str] = {
         "en": "English",
         "es": "Spanish",
-        "fr": "French",
-        "uk": "Ukrainian",
+        # "fr": "French",
+        # "uk": "Ukrainian",
     }
 
     model_config = SettingsConfigDict(env_prefix="SET_")

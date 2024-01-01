@@ -1,14 +1,16 @@
 import asyncio
+
 import pytest
 import pytest_asyncio
 from testcontainers.mongodb import MongoDbContainer
 
 from app.app_ctx import AppCtx
+from app.data_layer.models import BabbleSentence
 from app.settings import settings
 
 
 @pytest.fixture(autouse=True)
-def autouse_fixtures(app_ctx):
+def autouse_fixtures(app_ctx, clean_db):
     pass
 
 
@@ -26,3 +28,8 @@ async def app_ctx(event_loop):
         await AppCtx.start()
         yield AppCtx
         await AppCtx.shutdown()
+
+
+@pytest_asyncio.fixture()
+async def clean_db():
+    await BabbleSentence.find_all().delete()
