@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from loguru import logger
 
 from app.app_ctx import get_application_ctx
+from app.data_layer.models import User
 from app.settings import settings
 
 app = typer.Typer()
@@ -126,6 +127,14 @@ async def generate_course_sentences(filename: str, lang: str = "es"):
                 logger.info(f"{total}. {sentence[lang]}")
 
     logger.info(f"{len(result)} sentences generated")
+
+
+@app.command()
+@coro
+async def create_user(nickname: str):
+    async with get_application_ctx():
+        user = await User.create_user(nickname)
+        logger.info(f"User created: {user}")
 
 
 if __name__ == "__main__":

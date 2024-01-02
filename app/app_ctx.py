@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from app.data_layer.models import BabbleSentence
+from app.data_layer.models import beanie_models
 from app.settings import settings
 
 
@@ -13,7 +13,7 @@ class AppCtx:
     @classmethod
     async def start(cls) -> None:
         cls.mongo_client = AsyncIOMotorClient(settings.MONGO_URL)
-        await init_beanie(database=cls.mongo_client[settings.MONGO_DB], document_models=[BabbleSentence])
+        await init_beanie(database=cls.mongo_client[settings.MONGO_DB], document_models=beanie_models)
 
     @classmethod
     async def shutdown(cls) -> None:
