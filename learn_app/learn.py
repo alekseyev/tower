@@ -3,7 +3,7 @@ from textual.widget import Widget
 from textual.widgets import Button, Footer, Header, Static
 
 from app.app_ctx import AppCtx
-from app.courses import get_courses_list
+from app.courses import get_course_data, get_courses_list
 from app.data_layer.models import BabbleSentence, User, UserProgress
 
 USER_ID = "ff2caa0f-2426-4ad4-b9fe-b1e01f0f0e2a"
@@ -15,6 +15,8 @@ lang = "es"
 base_lang = "en"
 selected_course = None
 exercies_to_show: list[BabbleSentence] = []
+current_exercise: int = 0
+total_exercices: int = 0
 
 
 async def init_data():
@@ -24,8 +26,41 @@ async def init_data():
     course_data = await UserProgress.get(USER_ID)
 
 
+def perc(a, b):
+    return f"{a} / {b} [{a / b * 100:.3f}%]"
+
+
+def get_stats_text() -> str:
+    global course_data
+    if course_data is None:
+        return "Waiting for Data"
+    data = course_data.languages[lang]
+    c_data = get_course_data(lang, "casa.s01e01")
+    encountered = len(data.words)
+    learned = len([word for word in data.words if word in c_data])
+    practiced = len([word for word in data.words if word in c_data and data.words[word].seen_times > 1])
+    count = len(c_data)
+    total = sum([cnt for word, cnt in c_data.items()])
+    total_learned = sum([cnt for word, cnt in c_data.items() if word in data.words])
+
+    new_words = len(data.get_new_words())
+    bad_words = len(data.get_bad_words())
+
+    return (
+        f"Words encountered: {encountered}\n"
+        f"Words learned from course {perc(learned, count)}\n"
+        f"Words practiced {perc(practiced, learned)}\n"
+        f"New words {perc(new_words, learned)}\n"
+        f"Bad words {perc(bad_words, learned)}\n"
+        f"Understanding {perc(total_learned, total)}\n"
+        f"Total exercises: {data.total_exercises}"
+    )
+
+
 class StartMenu(Static):
     def compose(self) -> ComposeResult:
+        yield Static(get_stats_text())
+        yield Button("Reload", id="start")
         yield Button("Exercise", id="exercise")
         yield Button("Learn new words", id="learn")
 
@@ -90,19 +125,26 @@ class MainScreen(Static):
     async def start_exercises(self):
         global exercies_to_show
         global course_data
+        global current_exercise
+        global total_exercices
         exercies_to_show = await course_data.get_sentences(lang)
+        current_exercise = 0
+        total_exercices = len(exercies_to_show)
         await self.show_next_exercise()
 
     async def show_next_exercise(self):
         global exercies_to_show
+        global current_exercise
+        global total_exercices
         if not exercies_to_show:
             await self.return_home()
             return
         self.query_one(MainScreenContainer).remove()
         exercise = exercies_to_show[-1]
-        self.mount(
-            MainScreenContainer(ShowSentenceScreen(text=exercise.text[lang], translation=exercise.text[base_lang]))
-        )
+        self.log("Next exercise", exercise)
+        current_exercise += 1
+        text = f"[b][{current_exercise}/{total_exercices}][/b]\n{exercise.text[lang]}"
+        self.mount(MainScreenContainer(ShowSentenceScreen(text=text, translation=exercise.text[base_lang])))
 
     def save_exercise(self, correct: bool = True):
         global exercies_to_show

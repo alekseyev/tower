@@ -27,6 +27,7 @@ pytest = "^7.4.2"
 testcontainers-mongodb = "^0.0.1rc1"
 pytest-mock = "^3.11.1"
 pytest-asyncio = "^0.21.1"
+ipdb = "^0.13.13"
 
 [build-system]
 requires = ["poetry-core"]

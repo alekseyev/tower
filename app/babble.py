@@ -5,7 +5,6 @@ from typing import Optional, Type
 
 import openai
 import spacy
-from bson import ObjectId
 from loguru import logger
 
 from app.data_layer.models import BabbleSentence
@@ -23,9 +22,22 @@ for code, model in settings.SPACY_MODELS.items():
 logger.info(f"Loaded {len(nlp)} Spacy models in {time.perf_counter() - start:.6}s")
 
 
-def lemmatize(lang_code: str, sentence: str) -> list[str]:
+EXCEPTIONS = {
+    "es": { "Hablas": "Hablar"},
+    "en": {},
+}
+
+def process_exceptions(lang_code: str, word: str) -> str:
+    return EXCEPTIONS[lang_code].get(word, word)
+
+def lemmatize(lang_code: str, sentence: str, skip_propns: bool = False, skip_words: list = []) -> list[str]:
     doc = nlp[lang_code](sentence)
-    return [token.lemma_.capitalize() for token in doc if token.lemma_ not in ".,¿?¡!:;()"]
+    lemmas = []
+    for token in doc:
+        if not token.is_alpha or skip_propns and token.pos_ == "PROPN":
+            continue
+        lemmas += [process_exceptions(lang_code, w) for word in token.lemma_.split() if (w := word.capitalize()) not in skip_words]
+    return [lemma.capitalize() for lemma in lemmas]
 
 
 class GPTSentences:
@@ -47,11 +59,15 @@ class GPTSentences:
     ) -> list[dict[str, str]]:
         prompt = (
             f"Here is a list of words in {self.lang_codes[base_language]}: {', '.join(dictionary)}. "
-            f"Generate {N} different sentences with these words"
+            f"Generate {N} different sentences with these words and only with these words "
+            "(without using any not from this list, except names)"
         )
         if req_dictionary:
-            prompt += ", but each sentence absolutely must contain at least" " one word from this list: "
-            prompt += ", ".join(req_dictionary)
+            if len(req_dictionary) == 1:
+                prompt += ", but each sentence absolutely must contain the word {req_dictionary[0]} "
+            else:
+                prompt += ", but each sentence absolutely must contain at least one word from this list: "
+                prompt += ", ".join(req_dictionary)
         prompt += ". Return as a JSON list, with these fields for each: "
         prompt += ", ".join(f"{code} - sentence in {language}" for code, language in self.lang_codes.items())
 
@@ -155,7 +171,7 @@ async def get_from_db(
     req_dictionary: list[str] | None = None,
     base_language: str = "es",
     N: int = 10,
-    exclude_ids: list[ObjectId] | None = None,
+    exclude_ids: list[str] | None = None,
 ) -> list[BabbleSentence]:
     subqueries = [{"$expr": {"$setIsSubset": [f"$lemmas.{base_language}", dictionary]}}]
     if exclude_ids:
@@ -178,16 +194,20 @@ async def generate_and_save_sentences(
         base_language=base_language,
         N=N,
     )
+    for s in sentences:
+        logger.info(s.text)
 
     found_sentences_result = await BabbleSentence.find(
-        {"text.{base_language}": {"$in": [sentence.text[base_language] for sentence in sentences]}}
+        {f"text.{base_language}": {"$in": [sentence.text[base_language] for sentence in sentences]}}
     ).to_list()
 
-    found_sentences = [sentence.text[base_language] for sentence in found_sentences_result]
+    if found_sentences_result:
+        logger.info(f"Removing {len(found_sentences_result)} duplicates from results")
+        found_sentences = [sentence.text[base_language] for sentence in found_sentences_result]
+        sentences = [sentence for sentence in sentences if sentence.text[base_language] not in found_sentences]
 
-    sentences = [sentence for sentence in sentences if sentence.text[base_language] not in found_sentences]
-
-    await BabbleSentence.insert_many(sentences)
+    if sentences:
+        await BabbleSentence.insert_many(sentences)
     return sentences
 
 
@@ -196,34 +216,43 @@ async def get_sentences(
     req_dictionary: list[str] | None = None,
     base_language: str = "es",
     N: int = 10,
-    exclude_ids: list[ObjectId] | None = None,
+    exclude_ids: list[str] | None = None,
 ) -> list[BabbleSentence]:
     if req_dictionary is None:
         req_dictionary = []
-    sentences = await get_from_db(
-        dictionary=dictionary,
-        req_dictionary=req_dictionary,
-        base_language=base_language,
-        N=N,
-        exclude_ids=exclude_ids,
-    )
 
-    while len(sentences) < N:
-        to_generate = 40
+    sentences = []
+    pass_no = 0
+
+    while len(sentences) < N and pass_no < 5:
+        pass_no += 1
+        sentences = await get_from_db(
+            dictionary=dictionary,
+            req_dictionary=req_dictionary,
+            base_language=base_language,
+            N=N,
+            exclude_ids=exclude_ids,
+        )
+        logger.info(f"Pass {pass_no}: Found {len(sentences)} from DB with {dictionary=} {req_dictionary=}")
+
+        if len(sentences) >= N:
+            break
+
+        to_generate = 20
         dict_len = len(dictionary) + len(req_dictionary)
-        if dict_len < 50:
-            to_generate = 30
-            if dict_len < 20:
-                to_generate = 20
-            if dict_len < 10:
-                to_generate = 10
-            N = min(to_generate, N)
+        if dict_len < 10:
+            to_generate = 10
+            # to_generate = 30
+            # if dict_len < 20:
+            #     to_generate = 20
+            # if dict_len < 10:
+            #     to_generate = 10
 
-        sentences += await generate_and_save_sentences(
+        await generate_and_save_sentences(
             dictionary=dictionary,
             req_dictionary=req_dictionary,
             base_language=base_language,
             N=to_generate,
         )
 
-    return sentences
+    return sentences[:N]

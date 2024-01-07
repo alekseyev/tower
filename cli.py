@@ -52,16 +52,10 @@ def process_srt(filename: str):
 def process_words(filename: str, lang: str = "es"):
     from app.babble import lemmatize
 
-    with open(filename, "r") as f:
-        text = f.read()
-
-    words = text.split()
-    words = [w.strip('.,¿?¡!:;()-"').lower() for w in words]
     lemmatized = []
-    for word in words:
-        if not word or word.isnumeric():
-            continue
-        lemmatized += lemmatize(lang, word)
+    with open(filename, "r") as f:
+        for line in f:
+            lemmatized += lemmatize(lang, line, skip_propns=True)
 
     counts = Counter(lemmatized)
     print(json.dumps(dict(counts.most_common()), indent=4))

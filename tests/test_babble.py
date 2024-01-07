@@ -2,31 +2,42 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.babble import BabbleSentence, GPTSentences, generate_babble, get_from_db, get_sentences
+from app.babble import (
+    BabbleSentence,
+    GPTSentences,
+    generate_and_save_sentences,
+    generate_babble,
+    get_from_db,
+    get_sentences,
+)
 
 DICTIONARY = [
-    "yo",
-    "tu",
-    "hola",
-    "gracias",
-    "sí",
-    "no",
-    "por",
-    "favor",
-    "bien",
-    "mal",
-    "amigo",
-    "agua",
-    "comida",
-    "casa",
-    "tiempo",
-    "día",
-    "hombre",
-    "mujer",
-    "aquí",
-    "sentir",
-    "ayuda",
-    "necesitar",
+    "Agua",
+    "Amigo",
+    "Aquí",
+    "Ayuda",
+    "Bien",
+    "Casa",
+    "Comida",
+    "Día",
+    "Favor",
+    "Gracias",
+    "Hacer",
+    "Hola",
+    "Hombre",
+    "Hoy",
+    "Mal",
+    "Mujer",
+    "Necesitar",
+    "No",
+    "Poder",
+    "Por",
+    "Sentir",
+    "Sí",
+    "Tiempo",
+    "Tu",
+    "Yo",
+    "Él",
 ]
 
 
@@ -39,7 +50,7 @@ def mock_gpt_output(mocker):
             return_value=[
                 {"en": "Hello, my friend!", "es": "¡Hola, amigo!"},
                 {"en": "Thank you for your help.", "es": "Gracias por tu ayuda."},
-                # {'en': 'Yes, I can do it.', 'es': 'Sí, puedo hacerlo.'},
+                {"en": "Yes, I can do it.", "es": "Sí, puedo hacerlo."},
                 {"en": "I feel good today.", "es": "Me siento bien hoy."},
                 {"en": "I need water.", "es": "Necesito agua."},
             ]
@@ -58,11 +69,10 @@ def generated_output_with_lemmas():
             text={"en": "Thank you for your help.", "es": "Gracias por tu ayuda."},
             lemmas={"en": ["Thank", "You", "For", "Your", "Help"], "es": ["Gracias", "Por", "Tu", "Ayuda"]},
         ),
-        # BabbleSentence(
-        #     text={"en": "Yes, I can do it.", "es": "Sí, puedo hacerlo."},
-        #     lemmas={"en": ["yes", "I", "can", "do", "it"], "es": ["sí", "poder", "hacer él"]},
-        # ),
-        # TODO hacer el -> hacer, el
+        BabbleSentence(
+            text={"en": "Yes, I can do it.", "es": "Sí, puedo hacerlo."},
+            lemmas={"en": ["Yes", "I", "Can", "Do", "It"], "es": ["Sí", "Poder", "Hacer", "Él"]},
+        ),
         BabbleSentence(
             text={"en": "I feel good today.", "es": "Me siento bien hoy."},
             lemmas={"en": ["I", "Feel", "Good", "Today"], "es": ["Yo", "Sentir", "Bien", "Hoy"]},
@@ -89,7 +99,7 @@ async def test_generate_sentences(generated_output_with_lemmas):
 
 @pytest.mark.asyncio
 async def test_get_sentences(generated_output_with_lemmas):
-    result = await get_sentences(DICTIONARY, N=4)
+    result = await get_sentences(DICTIONARY, N=5)
     assert_same_sentences(result, generated_output_with_lemmas)
 
 
@@ -98,4 +108,15 @@ async def test_get_from_db(generated_output_with_lemmas):
     await BabbleSentence.insert_many(generated_output_with_lemmas)
 
     sentences = await get_from_db(dictionary=["Yo", "Sentir", "Bien", "Hoy"])
-    assert_same_sentences(sentences, [generated_output_with_lemmas[2]])
+    assert_same_sentences(sentences, [generated_output_with_lemmas[3]])
+
+
+@pytest.mark.asyncio
+async def test_skip_duplicates(generated_output_with_lemmas):
+    await BabbleSentence(
+        text={"en": "Hello, my friend!", "es": "¡Hola, amigo!"},
+        lemmas={"en": ["Hello", "My", "Friend"], "es": ["Hola", "Amigo"]},
+    ).save()
+
+    result = await generate_and_save_sentences(DICTIONARY)
+    assert len(result) == 4

@@ -8,7 +8,10 @@ from pydantic import BaseModel, Field
 from app.courses import get_base_words, get_new_words
 
 TRACK_CORRECTNESS = 10
-TRACK_LAST_EXERCISES = 40
+TRACK_LAST_EXERCISES = 100
+
+EXERCISES_PER_LESSON = 10
+WORDS_TO_PRACTICE_PER_LESSON = 5
 
 
 class BabbleSentence(Document):
@@ -69,6 +72,35 @@ class LanguageData(BaseModel):
         self.last_exercises.append(id)
         self.last_exercises = self.last_exercises[-TRACK_LAST_EXERCISES:]
 
+    def get_new_words(self, max_seen_count=5) -> set[str]:
+        # Return new words (seen count < 5)
+        return set(word for word, data in self.words.items() if data.seen_times < max_seen_count)
+
+    def get_bad_words(self, max_correctness_rate=85) -> set[str]:
+        return set(word for word, data in self.words.items() if data.correctness_rate < max_correctness_rate)
+
+    def suggest_words_to_practice(self, N: int = WORDS_TO_PRACTICE_PER_LESSON) -> set[str]:
+        suggested = set()
+
+        # 1. New words (seen count < 5)
+        new_words = sorted(self.get_new_words(), key=lambda w: self.words[w].seen_times, reverse=True)
+        while len(suggested) < N and new_words:
+            suggested.add(new_words.pop())
+
+        # 2. Bad corretness rate
+        bad_words = sorted(self.get_bad_words(), key=lambda w: self.words[w].correctness_rate, reverse=True)
+        while len(suggested) < N and bad_words:
+            suggested.add(bad_words.pop())
+
+        # 3. Last seen
+        if len(suggested) < N:
+            words = sorted(self.words.keys(), key=lambda w: self.words[w].last_seen_ts, reverse=True)
+
+            while len(suggested) < N:
+                suggested.add(words.pop())
+
+        return suggested
+
 
 class UserProgress(Document):
     id: UUID
@@ -81,14 +113,16 @@ class UserProgress(Document):
         current_words = list(self.languages[lang].words.keys())
         return get_new_words(lang, course, current_words)
 
-    async def get_sentences(self, lang: str) -> list[BabbleSentence]:
+    async def get_sentences(self, lang: str, N: int = EXERCISES_PER_LESSON) -> list[BabbleSentence]:
         from app.babble import get_sentences
 
+        suggested = self.languages[lang].suggest_words_to_practice()
         return await get_sentences(
             dictionary=list(self.languages[lang].words.keys()),
+            req_dictionary=suggested,
             base_language=lang,
             exclude_ids=self.languages[lang].last_exercises,
-            N=5,
+            N=N,
         )
 
     class Settings:
