@@ -10,8 +10,8 @@ from app.courses import get_base_words, get_new_words
 TRACK_CORRECTNESS = 10
 TRACK_LAST_EXERCISES = 100
 
-EXERCISES_PER_LESSON = 10
-WORDS_TO_PRACTICE_PER_LESSON = 5
+EXERCISES_PER_LESSON = 12
+WORDS_TO_PRACTICE_PER_LESSON = 4
 
 
 class BabbleSentence(Document):
@@ -117,13 +117,17 @@ class UserProgress(Document):
         from app.babble import get_sentences
 
         suggested = self.languages[lang].suggest_words_to_practice()
-        return await get_sentences(
-            dictionary=list(self.languages[lang].words.keys()),
-            req_dictionary=suggested,
-            base_language=lang,
-            exclude_ids=self.languages[lang].last_exercises,
-            N=N,
-        )
+        sentences = []
+        for word in suggested:
+            sentences += await get_sentences(
+                dictionary=list(self.languages[lang].words.keys()),
+                req_dictionary=[word],
+                base_language=lang,
+                exclude_ids=self.languages[lang].last_exercises,
+                N=N // len(suggested),
+            )
+
+        return sentences
 
     class Settings:
         name = "user_progress"

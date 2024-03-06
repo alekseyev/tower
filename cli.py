@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from loguru import logger
 
 from app.app_ctx import get_application_ctx
+from app.babble import get_sentences
 from app.data_layer.models import User
 from app.settings import settings
 
@@ -80,8 +81,6 @@ async def generate_base_sentences(lang: str = "es"):
 @app.command()
 @coro
 async def generate_course_sentences(filename: str, lang: str = "es"):
-    from app.babble import generate_and_save_sentences
-
     with open(f"{lang}/base.json", "r") as f:
         base_dict = json.load(f)
 
@@ -98,29 +97,18 @@ async def generate_course_sentences(filename: str, lang: str = "es"):
         total = 0
 
         for word in course_words:
-            if word in current_dictionary:
-                continue
-
-            current_req.append(word)
-            if len(current_req) >= 5:
-                result = await generate_and_save_sentences(
-                    dictionary=current_dictionary, req_dictionary=current_req, base_language=lang, N=20
-                )
-                for sentence in result:
-                    total += 1
-                    logger.info(f"{total}. {sentence.text[lang]}")
-                current_dictionary += current_req
-                current_req = []
-
-        if current_req:
-            result = await generate_and_save_sentences(
-                dictionary=current_dictionary, req_dictionary=current_req, base_language=lang, N=20
+            current_req = [word]
+            current_dictionary += current_req
+            result = await get_sentences(
+                dictionary=current_dictionary,
+                req_dictionary=current_req,
+                base_language=lang,
+                N=10,
+                maximum_passes=20,
             )
-            for sentence in result:
-                total += 1
-                logger.info(f"{total}. {sentence[lang]}")
+            total += len(result)
 
-    logger.info(f"{len(result)} sentences generated")
+    logger.info(f"{len(result)} correct sentences generated")
 
 
 @app.command()

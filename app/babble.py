@@ -23,20 +23,34 @@ logger.info(f"Loaded {len(nlp)} Spacy models in {time.perf_counter() - start:.6}
 
 
 EXCEPTIONS = {
-    "es": { "Hablas": "Hablar"},
+    "es": {"Hablas": "Hablar"},
     "en": {},
 }
 
-def process_exceptions(lang_code: str, word: str) -> str:
-    return EXCEPTIONS[lang_code].get(word, word)
 
-def lemmatize(lang_code: str, sentence: str, skip_propns: bool = False, skip_words: list = []) -> list[str]:
+STOP_WORDS = {
+    "es": ["Eh", "Coño", "Puta"],
+    "en": [],
+}
+
+
+def process_exceptions(lang_code: str, word: str) -> str:
+    return EXCEPTIONS.get(lang_code, {}).get(word, word)
+
+
+def lemmatize(lang_code: str, sentence: str, skip_propns: bool = False, skip_words: list | None = None) -> list[str]:
+    if not skip_words:
+        skip_words = STOP_WORDS.get(lang_code, [])
     doc = nlp[lang_code](sentence)
     lemmas = []
     for token in doc:
         if not token.is_alpha or skip_propns and token.pos_ == "PROPN":
             continue
-        lemmas += [process_exceptions(lang_code, w) for word in token.lemma_.split() if (w := word.capitalize()) not in skip_words]
+        lemmas += [
+            process_exceptions(lang_code, w)
+            for word in token.lemma_.split()
+            if (w := word.capitalize()) not in skip_words
+        ]
     return [lemma.capitalize() for lemma in lemmas]
 
 
@@ -64,7 +78,7 @@ class GPTSentences:
         )
         if req_dictionary:
             if len(req_dictionary) == 1:
-                prompt += ", but each sentence absolutely must contain the word {req_dictionary[0]} "
+                prompt += f", but each sentence absolutely must contain the word '{req_dictionary[0]}' "
             else:
                 prompt += ", but each sentence absolutely must contain at least one word from this list: "
                 prompt += ", ".join(req_dictionary)
@@ -129,6 +143,16 @@ class GPTSentences:
         if isinstance(result, dict):
             hacks.append("dict")
             result = next(iter(result.values()))
+
+        if not isinstance(result, list):
+            hacks.append("not_list")
+            result = []
+
+        result = [
+            sentence
+            for sentence in result
+            if isinstance(sentence, dict) and set(sentence.keys()) == set(self.lang_codes.keys())
+        ]
 
         logger.info(
             f"OpenAPI {self.model} call took {time.perf_counter() - start:.6}s, returning {len(result)} sentences. "
@@ -195,7 +219,12 @@ async def generate_and_save_sentences(
         N=N,
     )
     for s in sentences:
-        logger.info(s.text)
+        logger.info(f"Generated sentece: {s.text}")
+        if req_dictionary:
+            present = set(req_dictionary) & set(s.lemmas[base_language]) == set(req_dictionary)
+            logger.info(f"Required dictionary {present=}")
+        extra = set(s.lemmas[base_language]) - set(dictionary)
+        logger.info(f"Extra words: {extra}")
 
     found_sentences_result = await BabbleSentence.find(
         {f"text.{base_language}": {"$in": [sentence.text[base_language] for sentence in sentences]}}
@@ -217,6 +246,8 @@ async def get_sentences(
     base_language: str = "es",
     N: int = 10,
     exclude_ids: list[str] | None = None,
+    maximum_passes: int = 5,
+    minimum_valid: int = 3,
 ) -> list[BabbleSentence]:
     if req_dictionary is None:
         req_dictionary = []
@@ -224,7 +255,7 @@ async def get_sentences(
     sentences = []
     pass_no = 0
 
-    while len(sentences) < N and pass_no < 5:
+    while len(sentences) < N and pass_no < maximum_passes:
         pass_no += 1
         sentences = await get_from_db(
             dictionary=dictionary,

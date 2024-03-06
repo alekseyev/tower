@@ -163,3 +163,4 @@ cython_debug/
 .envrc
 secrets.json
 localdata
+test.ipynb
