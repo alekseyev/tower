@@ -1,0 +1,24 @@
+WordBankButtons {
+    layout: horizontal;
+}
+
+WordBankButton {
+    background: blue;
+}
+
+WordBankResult {
+    layout: horizontal;
+    height: 10;
+}
+
+.hidden {
+    display: none;
+}
+
+.success {
+    color: green;
+}
+
+.error {
+    color: red;
+}

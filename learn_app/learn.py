@@ -1,3 +1,5 @@
+import random
+
 from textual.app import App, ComposeResult
 from textual.widget import Widget
 from textual.widgets import Button, Footer, Header, Static
@@ -83,6 +85,33 @@ class NewWordsScreen(Static):
         yield Button("Back", id="start")
 
 
+class WordResultButton(Button):
+    pass
+
+
+class WordBankResult(Static):
+    def __init__(self):
+        super().__init__()
+
+    def add_word(self, word: str, bank_index: int):
+        self.mount(WordResultButton(word, id=f"word_result_{bank_index}"))
+
+
+class WordBankButton(Button):
+    pass
+
+
+class WordBankButtons(Static):
+    def __init__(self, words: list[str]):
+        super().__init__()
+        self.words = words
+        random.shuffle(self.words)
+
+    def compose(self) -> ComposeResult:
+        for i, word in enumerate(self.words):
+            yield (WordBankButton(word, id=f"word_bank_{i}"))
+
+
 class ShowSentenceScreen(Static):
     def __init__(self, text: str, translation: str):
         super().__init__()
@@ -91,12 +120,17 @@ class ShowSentenceScreen(Static):
 
     def compose(self) -> ComposeResult:
         yield Static(self.text)
-        yield Button("Show translation", id="show_translation")
+        yield (WordBankResult())
+        yield (WordBankButtons(self.translation.split()))
+        yield (Button("submit", id="exercise_submit"))
 
-    def show_translation(self):
-        self.mount(Static(self.translation))
+    def show_translation(self, correct: bool):
+        self.mount(
+            Static(
+                "Correct!" if correct else f"Incorrect! {self.translation}", classes="success" if correct else "error"
+            )
+        )
         self.mount(Button("Ok", id="exercise_ok"))
-        self.mount(Button("Mistake", id="exercise_mistake"))
 
 
 class MainScreenContainer(Static):
@@ -150,7 +184,11 @@ class MainScreen(Static):
         global exercies_to_show
         global course_data
         exercise = exercies_to_show.pop()
+        result_buttons = self.query(WordResultButton)
+        result_text = [str(button.label) for button in result_buttons]
+        correct = result_text == exercise.text[base_lang].split()
         course_data.languages[lang].add_exercise(id=exercise.id, words=exercise.lemmas[lang], correct=correct)
+        self.query_one(ShowSentenceScreen).show_translation(correct)
 
     async def return_home(self):
         global course_data
@@ -169,19 +207,25 @@ class MainScreen(Static):
             self.show_new_words(selected_course)
         elif button_id == "exercise":
             await self.start_exercises()
-        elif button_id == "show_translation":
-            self.query_one(ShowSentenceScreen).show_translation()
-        elif button_id == "exercise_ok":
+        elif button_id == "exercise_submit":
             self.save_exercise()
+        elif button_id == "exercise_ok":
             await self.show_next_exercise()
-        elif button_id == "exercise_mistake":
-            self.save_exercise(False)
-            await self.show_next_exercise()
+        elif button_id.startswith("word_bank"):
+            index = button_id.split("word_bank_")[1]
+            button_text = event.button.label
+            self.query_one(WordBankResult).add_word(button_text, int(index))
+            event.button.add_class("hidden")
+        elif button_id.startswith("word_result"):
+            index = button_id.split("word_result_")[1]
+            event.button.remove()
+            self.query_one(f"#word_bank_{index}").remove_class("hidden")
 
 
 class LearnApp(App):
     """Babble babble babble"""
 
+    CSS_PATH = "learn.tcss"  #
     BINDINGS = [("d", "toggle_dark", "Toggle dark mode"), ("q", "exit", "Exit")]
 
     async def on_mount(self) -> None:
