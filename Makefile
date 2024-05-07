@@ -1,10 +1,15 @@
 .PHONY: install format devrun devconsole help
 
 
-install: ## Install packages
-	poetry install
-	poetry run python cli.py download-spacy-models
+requirements: ## Generate requirements.txt from requirements.in
+	uv pip compile requirements.in > requirements.txt
 
+install: ## Install packages
+	test -d .venv || uv venv --python $(cat .python-version)
+	. .venv/bin/activate
+	uv pip install -r requirements.txt
+	python download_spacy_models.py
+ 
 format: ## Format with ruff
 	ruff format .
 	ruff check --fix .

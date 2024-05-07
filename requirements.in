@@ -1,0 +1,16 @@
+openai 
+spacy 
+pydantic-settings 
+loguru 
+beautifulsoup4 
+beanie 
+typer 
+textual 
+textual-dev
+
+ruff 
+pytest 
+testcontainers-mongodb 
+pytest-mock 
+pytest-asyncio 
+ipdb

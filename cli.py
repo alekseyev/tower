@@ -3,7 +3,6 @@ import json
 from collections import Counter
 from functools import wraps
 
-import spacy
 import typer
 from bs4 import BeautifulSoup
 from loguru import logger
@@ -11,7 +10,6 @@ from loguru import logger
 from app.app_ctx import get_application_ctx
 from app.babble import get_sentences
 from app.data_layer.models import User
-from app.settings import settings
 
 app = typer.Typer()
 
@@ -22,12 +20,6 @@ def coro(f):
         return asyncio.run(f(*args, **kwargs))
 
     return wrapper
-
-
-@app.command()
-def download_spacy_models():
-    for model in settings.SPACY_MODELS.values():
-        spacy.cli.download(model)
 
 
 @app.command()
