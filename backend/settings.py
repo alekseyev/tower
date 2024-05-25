@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     MONGO_URL: str = "mongodb://root:secret@localhost:3001"
     MONGO_DB: str = "tower"
 
+    AUTH_SECRET: str = "secret"
+
     GPT_TOKEN: str = secrets["openai_token"]
     GPT_MODEL: str = "gpt-3.5-turbo"
 

@@ -7,9 +7,13 @@ beanie
 typer 
 textual 
 textual-dev
+litestar[standard,jwt]
+argon2-cffi
+pip
 
 ruff 
 pytest 
+testcontainers
 testcontainers-mongodb 
 pytest-mock 
 pytest-asyncio 

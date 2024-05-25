@@ -7,8 +7,8 @@ import openai
 import spacy
 from loguru import logger
 
-from app.data_layer.models import BabbleSentence
-from app.settings import settings
+from backend.babble.models import BabbleSentence
+from backend.settings import settings
 
 openai.api_key = settings.GPT_TOKEN
 

@@ -7,9 +7,9 @@ import typer
 from bs4 import BeautifulSoup
 from loguru import logger
 
-from app.app_ctx import get_application_ctx
-from app.babble import get_sentences
-from app.data_layer.models import User
+from backend.app_ctx import get_application_ctx
+from backend.babble import get_sentences
+from backend.courses.models import User
 
 app = typer.Typer()
 
@@ -43,7 +43,7 @@ def process_srt(filename: str):
 
 @app.command()
 def process_words(filename: str, lang: str = "es"):
-    from app.babble import lemmatize
+    from backend.babble import lemmatize
 
     lemmatized = []
     with open(filename, "r") as f:
@@ -57,7 +57,7 @@ def process_words(filename: str, lang: str = "es"):
 @app.command()
 @coro
 async def generate_base_sentences(lang: str = "es"):
-    from app.babble import generate_and_save_sentences
+    from backend.babble import generate_and_save_sentences
 
     with open(f"{lang}/base.json", "r") as f:
         words = json.load(f)

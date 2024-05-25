@@ -1,26 +1,17 @@
-import asyncio
 import time
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from beanie import Document
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from app.courses import get_base_words, get_new_words
+from backend.babble.models import BabbleSentence
+from backend.courses.courses import get_base_words, get_new_words
 
 TRACK_CORRECTNESS = 10
 TRACK_LAST_EXERCISES = 100
 
 EXERCISES_PER_LESSON = 12
 WORDS_TO_PRACTICE_PER_LESSON = 4
-
-
-class BabbleSentence(Document):
-    id: UUID = Field(default_factory=uuid4)
-    text: dict[str, str]  # {"en": "I went"}
-    lemmas: dict[str, list[str]]  # {"en": ["I", "go"]}
-
-    class Settings:
-        name = "babble"
 
 
 class WordData(BaseModel):
@@ -43,6 +34,7 @@ class WordData(BaseModel):
 
 
 class LanguageData(BaseModel):
+    courses: list[str] = ["casa.s01e01"]
     words: dict[str, WordData] = {}
     first_exercise_ts: int = 0
     last_exercise_ts: int = 0
@@ -114,7 +106,7 @@ class UserProgress(Document):
         return get_new_words(lang, course, current_words)
 
     async def get_sentences(self, lang: str, N: int = EXERCISES_PER_LESSON) -> list[BabbleSentence]:
-        from app.babble import get_sentences
+        from backend.babble import get_sentences
 
         suggested = self.languages[lang].suggest_words_to_practice()
         sentences = []
@@ -133,22 +125,4 @@ class UserProgress(Document):
         name = "user_progress"
 
 
-class User(Document):
-    id: UUID = Field(default_factory=uuid4)
-    nickname: str
-
-    class Settings:
-        name = "users"
-
-    @classmethod
-    async def create_user(cls, nickname: str) -> "User":
-        user = User(nickname=nickname)
-        await asyncio.gather(
-            user.insert(),
-            UserProgress(id=user.id).insert(),
-        )
-
-        return user
-
-
-beanie_models = [BabbleSentence, User, UserProgress]
+courses_models = [UserProgress]

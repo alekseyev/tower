@@ -1,4 +1,4 @@
-from app.data_layer.models import LanguageData, WordData
+from backend.courses.models import LanguageData, WordData
 
 
 def test_suggested_words():

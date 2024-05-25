@@ -4,12 +4,17 @@ aiohttp==3.9.5
     # via textual-dev
 aiosignal==1.3.1
     # via aiohttp
-annotated-types==0.6.0
+annotated-types==0.7.0
     # via pydantic
 anyio==4.3.0
     # via
     #   httpx
+    #   litestar
     #   openai
+    #   watchfiles
+argon2-cffi==23.1.0
+argon2-cffi-bindings==21.2.0
+    # via argon2-cffi
 asttokens==2.4.1
     # via stack-data
 attrs==23.2.0
@@ -28,19 +33,28 @@ certifi==2024.2.2
     #   httpcore
     #   httpx
     #   requests
+cffi==1.16.0
+    # via
+    #   argon2-cffi-bindings
+    #   cryptography
 charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via
     #   beanie
+    #   litestar
+    #   rich-click
     #   textual-dev
     #   typer
+    #   uvicorn
 cloudpathlib==0.16.0
     # via weasel
 confection==0.1.4
     # via
     #   thinc
     #   weasel
+cryptography==42.0.7
+    # via litestar
 cymem==2.0.8
     # via
     #   preshed
@@ -54,20 +68,36 @@ distro==1.9.0
     # via openai
 dnspython==2.6.1
     # via pymongo
-docker==7.0.0
-    # via testcontainers-core
+docker==7.1.0
+    # via
+    #   testcontainers
+    #   testcontainers-core
+ecdsa==0.19.0
+    # via python-jose
+editorconfig==0.12.4
+    # via jsbeautifier
 executing==2.0.1
     # via stack-data
+faker==25.2.0
+    # via polyfactory
+fast-query-parsers==1.0.3
+    # via litestar
 frozenlist==1.4.1
     # via
     #   aiohttp
     #   aiosignal
 h11==0.14.0
-    # via httpcore
+    # via
+    #   httpcore
+    #   uvicorn
 httpcore==1.0.5
     # via httpx
+httptools==0.6.1
+    # via uvicorn
 httpx==0.27.0
-    # via openai
+    # via
+    #   litestar
+    #   openai
 idna==3.7
     # via
     #   anyio
@@ -82,7 +112,11 @@ ipython==8.24.0
 jedi==0.19.1
     # via ipython
 jinja2==3.1.4
-    # via spacy
+    # via
+    #   litestar
+    #   spacy
+jsbeautifier==1.15.1
+    # via litestar
 langcodes==3.4.0
     # via spacy
 language-data==1.2.0
@@ -91,6 +125,7 @@ lazy-model==0.2.0
     # via beanie
 linkify-it-py==2.0.3
     # via markdown-it-py
+litestar==2.8.3
 loguru==0.7.2
 marisa-trie==1.1.1
     # via language-data
@@ -103,7 +138,7 @@ markupsafe==2.1.5
     # via jinja2
 matplotlib-inline==0.1.7
     # via ipython
-mdit-py-plugins==0.4.0
+mdit-py-plugins==0.4.1
     # via markdown-it-py
 mdurl==0.1.2
     # via markdown-it-py
@@ -111,9 +146,12 @@ motor==3.4.0
     # via beanie
 msgpack==1.0.8
     # via textual-dev
+msgspec==0.18.6
+    # via litestar
 multidict==6.0.5
     # via
     #   aiohttp
+    #   litestar
     #   yarl
 murmurhash==1.0.10
     # via
@@ -125,10 +163,9 @@ numpy==1.26.4
     #   blis
     #   spacy
     #   thinc
-openai==1.25.2
+openai==1.30.2
 packaging==24.0
     # via
-    #   docker
     #   pytest
     #   spacy
     #   thinc
@@ -139,6 +176,8 @@ pexpect==4.9.0
     # via ipython
 pluggy==1.5.0
     # via pytest
+polyfactory==2.16.0
+    # via litestar
 preshed==3.0.9
     # via
     #   spacy
@@ -149,6 +188,12 @@ ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.2
     # via stack-data
+pyasn1==0.6.0
+    # via
+    #   python-jose
+    #   rsa
+pycparser==2.22
+    # via cffi
 pydantic==2.7.1
     # via
     #   beanie
@@ -166,33 +211,54 @@ pygments==2.18.0
     # via
     #   ipython
     #   rich
-pymongo==4.7.1
+pymongo==4.7.2
     # via
     #   motor
     #   testcontainers-mongodb
-pytest==8.2.0
+pytest==8.2.1
     # via
     #   pytest-asyncio
     #   pytest-mock
-pytest-asyncio==0.23.6
+pytest-asyncio==0.23.7
 pytest-mock==3.14.0
+python-dateutil==2.9.0.post0
+    # via faker
 python-dotenv==1.0.1
-    # via pydantic-settings
-requests==2.31.0
+    # via
+    #   pydantic-settings
+    #   uvicorn
+python-jose==3.3.0
+    # via litestar
+pyyaml==6.0.1
+    # via
+    #   litestar
+    #   uvicorn
+requests==2.32.2
     # via
     #   docker
     #   spacy
     #   weasel
 rich==13.7.1
-    # via textual
-ruff==0.4.3
-setuptools==69.5.1
+    # via
+    #   litestar
+    #   rich-click
+    #   textual
+rich-click==1.8.2
+    # via litestar
+rsa==4.9
+    # via python-jose
+ruff==0.4.5
+setuptools==70.0.0
     # via
     #   marisa-trie
     #   spacy
     #   thinc
 six==1.16.0
-    # via asttokens
+    # via
+    #   asttokens
+    #   ecdsa
+    #   jsbeautifier
+    #   python-dateutil
 smart-open==6.4.0
     # via
     #   spacy
@@ -217,10 +283,11 @@ srsly==2.4.8
     #   weasel
 stack-data==0.6.3
     # via ipython
+testcontainers==4.4.1
 testcontainers-core==0.0.1rc1
     # via testcontainers-mongodb
 testcontainers-mongodb==0.0.1rc1
-textual==0.58.1
+textual==0.63.2
     # via textual-dev
 textual-dev==1.5.1
 thinc==8.2.3
@@ -239,12 +306,16 @@ typer==0.9.4
     # via
     #   spacy
     #   weasel
-typing-extensions==4.11.0
+typing-extensions==4.12.0
     # via
     #   ipython
+    #   litestar
     #   openai
+    #   polyfactory
     #   pydantic
     #   pydantic-core
+    #   rich-click
+    #   testcontainers
     #   textual
     #   textual-dev
     #   typer
@@ -254,16 +325,29 @@ urllib3==2.2.1
     # via
     #   docker
     #   requests
+    #   testcontainers
+uvicorn==0.29.0
+    # via litestar
+uvloop==0.19.0
+    # via
+    #   litestar
+    #   uvicorn
 wasabi==1.1.2
     # via
     #   spacy
     #   thinc
     #   weasel
+watchfiles==0.21.0
+    # via uvicorn
 wcwidth==0.2.13
     # via prompt-toolkit
 weasel==0.3.4
     # via spacy
+websockets==12.0
+    # via uvicorn
 wrapt==1.16.0
-    # via testcontainers-core
+    # via
+    #   testcontainers
+    #   testcontainers-core
 yarl==1.9.4
     # via aiohttp

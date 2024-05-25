@@ -4,7 +4,7 @@
 requirements: ## Generate requirements.txt from requirements.in
 	uv pip compile requirements.in > requirements.txt
 
-install: ## Install packages
+install: ## Install packages from requirements.txt
 	test -d .venv || uv venv --python $(cat .python-version)
 	. .venv/bin/activate
 	uv pip install -r requirements.txt
@@ -14,10 +14,13 @@ format: ## Format with ruff
 	ruff format .
 	ruff check --fix .
 
-devrun: ## Run CLI interface in DEV mode
+devrun: ## Run web backend
+	litestar --app=backend.api_app:app run --reload-dir=backend
+
+tui_devrun: ## Run CLI interface in DEV mode
 	textual run --dev learn.py
 
-devconsole: ## Run dev console
+tui_devconsole: ## Run dev console
 	textual console  -x EVENT -x DEBUG
 
 help: ## Display this help

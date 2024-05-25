@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.babble import (
+from backend.babble.babble import (
     BabbleSentence,
     GPTSentences,
     generate_and_save_sentences,

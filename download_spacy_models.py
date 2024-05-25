@@ -1,6 +1,6 @@
 import spacy
 
-from app.settings import settings
+from backend.settings import settings
 
 
 def download_spacy_models():
