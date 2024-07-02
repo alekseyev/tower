@@ -57,20 +57,9 @@ async def test_register(http_client):
     assert user.nickname == "test"
 
 
-async def test_change_password(http_client):
-    user = await User.create_user(email="test@test.me", nickname="test", password="asdf")
-
-    token = encode_jwt_token(
-        {
-            "sub": "test@test.me",
-            "id": str(user.id),
-            "iat": datetime.now(timezone.utc),
-            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-        },
-    )
-
+async def test_change_password(http_client, auth_headers):
     response = await http_client.post(
-        "/change-password", json={"password": "ASDF"}, headers={"Authorization": f"Bearer {token}"}
+        "/change-password", json={"password": "ASDF"}, headers=auth_headers
     )
     assert response.status_code == HTTP_201_CREATED, response.json()
 

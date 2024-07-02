@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
@@ -6,6 +7,7 @@ from testcontainers.mongodb import MongoDbContainer
 from backend.api_app import app
 from backend.app_ctx import AppCtx
 from backend.babble.models import BabbleSentence
+from backend.core.crypto import encode_jwt_token
 from backend.core.models import User
 from backend.settings import settings
 
@@ -39,3 +41,21 @@ async def clean_db():
 async def http_client():
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client
+
+
+@pytest_asyncio.fixture
+async def user():
+    return await User.create_user(email="test@test.me", nickname="test", password="asdf")
+
+
+@pytest.fixture
+def auth_headers(user):
+    token = encode_jwt_token(
+        {
+            "sub": user.email,
+            "id": str(user.id),
+            "iat": datetime.now(timezone.utc),
+            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+        },
+    )
+    return {"Authorization": f"Bearer {token}"}

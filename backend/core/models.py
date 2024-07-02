@@ -1,7 +1,8 @@
 import asyncio
+from typing import Annotated
 from uuid import UUID, uuid4
 
-from beanie import Document
+from beanie import Document, Indexed
 from pydantic import BaseModel, Field
 
 from backend.core.crypto import get_password_hash, verify_password
@@ -30,7 +31,7 @@ class PasswordData(BaseModel):
 class User(Document):
     id: UUID = Field(default_factory=uuid4)
     nickname: str
-    email: str
+    email: Annotated[str, Indexed(unique=True)]
     password_hash: str | None = None
 
     class Settings:
@@ -38,7 +39,6 @@ class User(Document):
 
     @classmethod
     async def create_user(cls, email: str, nickname: str, password: str) -> "User":
-        # TODO: check unique email, nickname
         from backend.courses.models import UserProgress
 
         user = User(nickname=nickname, email=email, password_hash=get_password_hash(password))
