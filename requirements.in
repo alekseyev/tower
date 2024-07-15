@@ -10,6 +10,7 @@ textual-dev
 litestar[standard,jwt]
 argon2-cffi
 pip
+flet
 
 ruff 
 pytest 

@@ -23,5 +23,8 @@ tui_devrun: ## Run CLI interface in DEV mode
 tui_devconsole: ## Run dev console
 	textual console  -x EVENT -x DEBUG
 
+flet_run: ## run flet based GUI
+	PYTHONPATH="." flet run -d -r flet_ui
+
 help: ## Display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n\nTargets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
