@@ -1,4 +1,5 @@
 import flet as ft
+from loguru import logger
 
 
 class LoginForm(ft.Column):
@@ -9,6 +10,8 @@ class LoginForm(ft.Column):
         self.button_login = ft.FilledButton("Login", on_click=self.login)
         self.status = ft.Text("", style=ft.TextStyle(color=ft.colors.RED))
 
+        self._token = None
+
         self.controls = [
             self.edit_email,
             self.edit_password,
@@ -16,12 +19,25 @@ class LoginForm(ft.Column):
             self.status,
         ]
 
+    def did_mount(self):
+        self.status.value = ""
+        self.update()
+
+    async def set_token(self):
+        self.page.local_data.client_token = self._token
+
     async def login(self, e):
+        logger.info("clicked login")
         result = await self.page.client.login(self.edit_email.value, self.edit_password.value)
         if result:
-            self.page.local_data.client_token = result
+            logger.info("successful login")
+            self.status.value = "Success, logging in..."
+            self.update()
+            self._token = result
+            self.page.run_task(self.set_token)
             self.page.go("/")
         else:
+            logger.info("incorrect login")
             self.status.value = "Incorrect login"
             self.update()
 

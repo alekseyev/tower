@@ -13,6 +13,7 @@ ROUTES = {
     "/": ROOT_VIEW,
 }
 
+
 def main(page: ft.Page):
     global page_global
     page_global = page
@@ -28,14 +29,10 @@ def main(page: ft.Page):
         if not page.local_data.client_token or page.route == "/login":
             page.views.append(LOGIN_VIEW)
         else:
-            page.views.append(
-                ROOT_VIEW
-            )
+            page.views.append(ROOT_VIEW)
 
             if page.route != "/":
-                page.views.append(
-                    ROUTES[page.route]
-                )
+                page.views.append(ROUTES[page.route])
         page.update()
 
     def view_pop(view):

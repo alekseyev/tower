@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta, timezone
 from unittest.mock import ANY
 
 import pytest_asyncio
@@ -6,7 +5,6 @@ from httpx import AsyncClient
 from litestar.status_codes import HTTP_200_OK, HTTP_201_CREATED, HTTP_401_UNAUTHORIZED
 
 from backend.api_app import app
-from backend.core.crypto import encode_jwt_token
 from backend.core.models import User
 
 
@@ -58,9 +56,7 @@ async def test_register(http_client):
 
 
 async def test_change_password(http_client, auth_headers):
-    response = await http_client.post(
-        "/change-password", json={"password": "ASDF"}, headers=auth_headers
-    )
+    response = await http_client.post("/change-password", json={"password": "ASDF"}, headers=auth_headers)
     assert response.status_code == HTTP_201_CREATED, response.json()
 
     response = await http_client.post("/login", json={"email": "test@test.me", "password": "asdf"})

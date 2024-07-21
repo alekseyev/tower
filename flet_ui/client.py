@@ -51,4 +51,3 @@ class LearnClient:
     async def me(self) -> dict:
         code, data = await self.request("GET", "/me")
         return data
-

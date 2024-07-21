@@ -10,7 +10,7 @@ async def test_get_user_stats(http_client, user, auth_headers):
         id=user.id,
         languages={
             "es": LanguageData(
-                courses = ["casa.s01e01"],
+                courses=["casa.s01e01"],
                 words={
                     "Saber": WordData(  # new word
                         seen_times=1,
@@ -42,14 +42,12 @@ async def test_get_user_stats(http_client, user, auth_headers):
                         last_seen_ts=1,
                         correctness_rate=90,
                     ),
-                }
+                },
             )
         },
     ).save()
 
-    response = await http_client.get(
-        f"/user/{user.id}/stats", headers=auth_headers
-    )
+    response = await http_client.get(f"/user/{user.id}/stats", headers=auth_headers)
 
     assert response.status_code == HTTP_200_OK, response.json()
 

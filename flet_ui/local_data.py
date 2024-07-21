@@ -4,6 +4,7 @@ from flet_core.client_storage import ClientStorage
 
 CLIENT_TOKEN_ATTR = "client_token"
 
+
 class LocalData:
     def __init__(self, storage: ClientStorage, prefix: str):
         self.prefix = prefix
@@ -29,10 +30,9 @@ class LocalData:
         return self.get_attr(CLIENT_TOKEN_ATTR)
 
     @client_token.setter
-    def client_token(self, value): 
+    def client_token(self, value):
         self.set_attr(CLIENT_TOKEN_ATTR, value)
 
     @client_token.deleter
     def client_token(self):
         self.clear_attr(CLIENT_TOKEN_ATTR)
-
