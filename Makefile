@@ -1,13 +1,10 @@
 .PHONY: install format devrun devconsole help
 
 
-requirements: ## Generate requirements.txt from requirements.in
-	uv pip compile requirements.in > requirements.txt
-
 install: ## Install packages from requirements.txt
 	test -d .venv || uv venv --python $(cat .python-version)
 	. .venv/bin/activate
-	uv pip install -r requirements.txt
+	uv sync
 	python download_spacy_models.py
  
 format: ## Format with ruff
