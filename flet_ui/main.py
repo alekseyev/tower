@@ -3,13 +3,16 @@ import flet as ft
 from flet_ui.client import LearnClient
 from flet_ui.local_data import LocalData
 from flet_ui.pages.login import LOGIN_VIEW
+from flet_ui.pages.practice import PRACTICE_VIEW
 from flet_ui.pages.root import ROOT_VIEW
 from flet_ui.settings import settings
+from flet_ui.state import State
 
 page_global = None
 
 ROUTES = {
     "/login": LOGIN_VIEW,
+    "/practice": PRACTICE_VIEW,
     "/": ROOT_VIEW,
 }
 
@@ -20,6 +23,7 @@ def main(page: ft.Page):
     page.title = "Learn App"
     page.local_data = LocalData(page.client_storage, settings.LOCAL_STORAGE_PREFIX)
     page.client = LearnClient(settings.BACKEND_URL)
+    page.state = State()
 
     if token := page.local_data.client_token:
         page.client.set_access_token(token)

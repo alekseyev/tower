@@ -6,7 +6,9 @@ class LoginForm(ft.Column):
     def __init__(self):
         super().__init__()
         self.edit_email = ft.TextField(label="Email")
-        self.edit_password = ft.TextField(label="Password", password=True, can_reveal_password=True)
+        self.edit_password = ft.TextField(
+            label="Password", password=True, can_reveal_password=True, on_submit=self.login
+        )
         self.button_login = ft.FilledButton("Login", on_click=self.login)
         self.status = ft.Text("", style=ft.TextStyle(color=ft.colors.RED))
 

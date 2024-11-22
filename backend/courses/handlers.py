@@ -1,6 +1,7 @@
 from litestar import get
 from pydantic import BaseModel
 
+from backend.babble.models import BabbleSentence
 from backend.courses.courses import get_course_data
 from backend.courses.models import UserProgress
 
@@ -46,4 +47,10 @@ async def get_user_stats(user_id: str) -> dict[str, dict[str, WordsStats]]:
     return result
 
 
-user_handlers = [get_user_stats]
+@get("/user/{user_id:str}/exercises")
+async def get_user_exercises(user_id: str, lang: str) -> list[BabbleSentence]:
+    user_progress = await UserProgress.get(user_id)
+    return await user_progress.get_sentences(lang)
+
+
+user_handlers = [get_user_stats, get_user_exercises]

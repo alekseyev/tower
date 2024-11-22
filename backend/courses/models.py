@@ -106,7 +106,7 @@ class UserProgress(Document):
         return get_new_words(lang, course, current_words)
 
     async def get_sentences(self, lang: str, N: int = EXERCISES_PER_LESSON) -> list[BabbleSentence]:
-        from backend.babble import get_sentences
+        from backend.babble.babble import get_sentences
 
         suggested = self.languages[lang].suggest_words_to_practice()
         sentences = []

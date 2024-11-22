@@ -51,3 +51,11 @@ class LearnClient:
     async def me(self) -> dict:
         code, data = await self.request("GET", "/me")
         return data
+
+    async def stats(self, user_id: str) -> dict:
+        code, data = await self.request("GET", f"/user/{user_id}/stats")
+        return data
+
+    async def get_exercises(self, user_id: str, lang: str) -> list:
+        code, data = await self.request("GET", f"/user/{user_id}/exercises", params={"lang": lang})
+        return data
