@@ -1,9 +1,12 @@
-from litestar import get
+import asyncio
+
+from beanie.operators import In
+from litestar import get, post
 from pydantic import BaseModel
 
 from backend.babble.models import BabbleSentence
 from backend.courses.courses import get_course_data
-from backend.courses.models import UserProgress
+from backend.courses.models import ExerciseResult, UserProgress
 
 
 class WordsStats(BaseModel):
@@ -53,4 +56,21 @@ async def get_user_exercises(user_id: str, lang: str) -> list[BabbleSentence]:
     return await user_progress.get_sentences(lang)
 
 
-user_handlers = [get_user_stats, get_user_exercises]
+@post("/exercise/result")
+async def save_exercise_result(data: ExerciseResult) -> dict:
+    sentences, user_progress = await asyncio.gather(
+        BabbleSentence.find(In(BabbleSentence.id, list(data.results.keys()))).to_list(),
+        UserProgress.get(data.user_id),
+    )
+
+    words_for_sentence = {sentence.id: sentence.lemmas[data.lang] for sentence in sentences}
+
+    for exercise_id, correct in data.results.items():
+        user_progress.languages[data.lang].add_exercise(
+            id=exercise_id, words=words_for_sentence[exercise_id], correct=correct
+        )
+    await user_progress.save()
+    return {"result": "ok"}
+
+
+user_handlers = [get_user_stats, get_user_exercises, save_exercise_result]

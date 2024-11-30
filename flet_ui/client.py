@@ -59,3 +59,6 @@ class LearnClient:
     async def get_exercises(self, user_id: str, lang: str) -> list:
         code, data = await self.request("GET", f"/user/{user_id}/exercises", params={"lang": lang})
         return data
+
+    async def save_exercise_result(self, user_id: str, lang: str, results: dict[str, bool]):
+        await self.request("POST", "/exercise/result", {"user_id": user_id, "lang": lang, "results": results})

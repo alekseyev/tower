@@ -6,8 +6,9 @@ from textual.widgets import Button, Footer, Header, Static
 
 from backend.app_ctx import AppCtx
 from backend.babble.models import BabbleSentence
-from backend.courses import get_course_data, get_courses_list
-from backend.courses.models import User, UserProgress
+from backend.core.models import User
+from backend.courses.courses import get_course_data, get_courses_list
+from backend.courses.models import UserProgress
 
 USER_ID = "ff2caa0f-2426-4ad4-b9fe-b1e01f0f0e2a"
 
@@ -232,7 +233,7 @@ class LearnApp(App):
     async def on_mount(self) -> None:
         await AppCtx.start()
         await init_data()
-        from backend.babble import nlp
+        from backend.babble.babble import nlp
 
         self.log(f"{len(nlp)} nlp models available")
 

@@ -10,7 +10,7 @@ from backend.courses.courses import get_base_words, get_new_words
 TRACK_CORRECTNESS = 10
 TRACK_LAST_EXERCISES = 100
 
-EXERCISES_PER_LESSON = 12
+EXERCISES_PER_LESSON = 8
 WORDS_TO_PRACTICE_PER_LESSON = 4
 
 
@@ -123,6 +123,12 @@ class UserProgress(Document):
 
     class Settings:
         name = "user_progress"
+
+
+class ExerciseResult(BaseModel):
+    user_id: UUID
+    lang: str
+    results: dict[UUID, bool]
 
 
 courses_models = [UserProgress]
