@@ -13,16 +13,29 @@ class PracticeView(ft.Column):
         self.current_exercise = -1
         self.results = {}
         self.top_message = ft.Markdown("Loading...")
-        self.word_bank_buttons = ft.Row(wrap=True, spacing=10)
-        self.result_buttons = ft.Row(spacing=10)
+        self.word_bank_buttons = ft.Row(spacing=10, wrap=True)
+        self.result_buttons = ft.Row(spacing=10, wrap=True)
+        self.result_row = ft.Row(
+            [
+                ft.Container(
+                    content=self.result_buttons,
+                    height=100,
+                    border=ft.border.all(1, ft.colors.GREEN_300),
+                    border_radius=10,
+                    expand=True,
+                )
+            ],
+        )
         self.action_button = ft.FilledButton("Check", on_click=self.check)
         self.result_text = ft.Text("")
         self.button_home = ft.FilledButton("Return home", on_click=self.go_home)
+        self.expand = True
+        self.alignment = ft.MainAxisAlignment.SPACE_BETWEEN
 
         self.controls = [
             self.top_message,
-            self.word_bank_buttons,
-            self.result_buttons,
+            ft.Container(content=self.word_bank_buttons, height=100),
+            self.result_row,
             self.result_text,
             self.action_button,
             ft.Container(expand=True, content=ft.Text(" ")),
@@ -34,6 +47,7 @@ class PracticeView(ft.Column):
         self.top_message.value = "Loading..."
         self.word_bank_buttons.controls = []
         self.result_buttons.controls = []
+        self.result_row.visible = False
         self.action_button.visible = False
         self.result_text.value = ""
         self.action_button.text = "Check"
@@ -71,14 +85,9 @@ class PracticeView(ft.Column):
         self.word_bank_buttons.controls = []
         for word in words:
             button = ft.ElevatedButton(word)
-            spacer = ft.Container(
-                content=ft.Text(word, color=ft.colors.BLACK),
-                margin=10,
-                visible=False,
-            )
-            button.on_click = self.get_handler_on_word_bank_button_click(button, spacer)
+            button.on_click = self.get_handler_on_word_bank_button_click(button)
             self.word_bank_buttons.controls.append(button)
-            self.word_bank_buttons.controls.append(spacer)
+        self.result_row.visible = True
         self.result_buttons.controls = []
         self.action_button.visible = True
         self.update()
@@ -86,24 +95,20 @@ class PracticeView(ft.Column):
     def go_home(self, *args, **kwargs):
         self.page.go("/")
 
-    def get_handler_on_word_bank_button_click(self, button: ft.ElevatedButton, spacer: ft.Container):
+    def get_handler_on_word_bank_button_click(self, button: ft.ElevatedButton):
         def on_word_bank_click(*args, **kwargs):
-            button.visible = False
-            spacer.visible = True
+            button.opacity = 0
             result_button = ft.ElevatedButton(button.text)
-            result_button.on_click = self.get_handler_on_result_button_click(result_button, button, spacer)
+            result_button.on_click = self.get_handler_on_result_button_click(result_button, button)
             self.result_buttons.controls.append(result_button)
             self.update()
 
         return on_word_bank_click
 
-    def get_handler_on_result_button_click(
-        self, button: ft.ElevatedButton, word_bank_button: ft.ElevatedButton, spacer: ft.Container
-    ):
+    def get_handler_on_result_button_click(self, button: ft.ElevatedButton, word_bank_button: ft.ElevatedButton):
         def on_result_bank_click(*args, **kwargs):
             self.result_buttons.controls.remove(button)
-            word_bank_button.visible = True
-            spacer.visible = False
+            word_bank_button.opacity = 1
             self.update()
 
         return on_result_bank_click
