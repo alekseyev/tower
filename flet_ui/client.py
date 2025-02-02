@@ -62,3 +62,9 @@ class LearnClient:
 
     async def save_exercise_result(self, user_id: str, lang: str, results: dict[str, bool]):
         await self.request("POST", "/exercise/result", {"user_id": user_id, "lang": lang, "results": results})
+
+    async def get_new_words(self, user_id: str, lang: str, course: str) -> list[str]:
+        code, data = await self.request(
+            "POST", "/exercise/new_words", {"user_id": user_id, "lang": lang, "course": course}
+        )
+        return data

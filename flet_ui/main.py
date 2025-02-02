@@ -3,6 +3,7 @@ import flet as ft
 from flet_ui.client import LearnClient
 from flet_ui.local_data import LocalData
 from flet_ui.pages.login import LOGIN_VIEW
+from flet_ui.pages.new_words import NEW_WORDS_VIEW
 from flet_ui.pages.practice import PRACTICE_VIEW
 from flet_ui.pages.root import ROOT_VIEW
 from flet_ui.settings import settings
@@ -13,6 +14,7 @@ page_global = None
 ROUTES = {
     "/login": LOGIN_VIEW,
     "/practice": PRACTICE_VIEW,
+    "/new_words": NEW_WORDS_VIEW,
     "/": ROOT_VIEW,
 }
 

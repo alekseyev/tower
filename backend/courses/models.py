@@ -131,4 +131,10 @@ class ExerciseResult(BaseModel):
     results: dict[UUID, bool]
 
 
+class NewWordsRequest(BaseModel):
+    user_id: UUID
+    lang: str
+    course: str
+
+
 courses_models = [UserProgress]

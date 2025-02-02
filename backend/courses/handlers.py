@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from backend.babble.models import BabbleSentence
 from backend.courses.courses import get_course_data
-from backend.courses.models import ExerciseResult, UserProgress
+from backend.courses.models import ExerciseResult, NewWordsRequest, UserProgress
 
 
 class WordsStats(BaseModel):
@@ -73,4 +73,13 @@ async def save_exercise_result(data: ExerciseResult) -> dict:
     return {"result": "ok"}
 
 
-user_handlers = [get_user_stats, get_user_exercises, save_exercise_result]
+@post("/exercise/new_words")
+async def add_new_words(data: NewWordsRequest) -> list[str]:
+    user_progress = await UserProgress.get(data.user_id)
+    new_words = user_progress.get_new_words(data.lang, data.course)
+    user_progress.languages[data.lang].add_new_words(new_words)
+    await user_progress.save()
+    return new_words
+
+
+user_handlers = [get_user_stats, get_user_exercises, save_exercise_result, add_new_words]

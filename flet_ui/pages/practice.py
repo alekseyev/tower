@@ -5,11 +5,12 @@ from loguru import logger
 
 from flet_ui.client import NotAuthenticated
 from flet_ui.pages.const import LANG
+from flet_ui.pages.root import ROOT_VIEW_INSTANCE
 
 
 class PracticeView(ft.Column):
     def __init__(self):
-        super().__init__()
+        super().__init__(expand=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
         self.current_exercise = -1
         self.results = {}
         self.top_message = ft.Markdown("Loading...")
@@ -29,8 +30,6 @@ class PracticeView(ft.Column):
         self.action_button = ft.FilledButton("Check", on_click=self.check)
         self.result_text = ft.Text("")
         self.button_home = ft.FilledButton("Return home", on_click=self.go_home)
-        self.expand = True
-        self.alignment = ft.MainAxisAlignment.SPACE_BETWEEN
 
         self.controls = [
             self.top_message,
@@ -70,6 +69,7 @@ class PracticeView(ft.Column):
         self.page.state.user_id = self.user_id
         self.exercises = await self.page.client.get_exercises(self.user_id, LANG)
         self.current_exercise = -1
+        self.results = {}
         self.next_exercise()
 
     def next_exercise(self, *args, **kwargs):
@@ -94,6 +94,7 @@ class PracticeView(ft.Column):
 
     def go_home(self, *args, **kwargs):
         self.page.go("/")
+        self.page.run_task(ROOT_VIEW_INSTANCE.load_data)
 
     def get_handler_on_word_bank_button_click(self, button: ft.ElevatedButton):
         def on_word_bank_click(*args, **kwargs):

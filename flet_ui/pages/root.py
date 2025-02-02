@@ -11,15 +11,17 @@ def perc(a, b):
 
 class RootView(ft.Column):
     def __init__(self):
-        super().__init__()
+        super().__init__(expand=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
 
         self.status = ft.Markdown("Loading...")
         self.button_practice = ft.FilledButton("Practice", on_click=self.go_exercise)
+        self.button_new_words = ft.FilledButton("New words", on_click=self.go_new_words)
         self.button_logout = ft.FilledButton("Logout", on_click=self.logout)
 
         self.controls = [
             self.status,
             self.button_practice,
+            self.button_new_words,
             ft.Container(expand=True, content=ft.Text(" ")),
             ft.Divider(),
             self.button_logout,
@@ -55,5 +57,9 @@ class RootView(ft.Column):
     def go_exercise(self, *args, **kwargs):
         self.page.go("/practice")
 
+    def go_new_words(self, *args, **kwargs):
+        self.page.go("/new_words")
 
-ROOT_VIEW = ft.View("/", [ft.AppBar(title=ft.Text("Welcome, learner!")), RootView()])
+
+ROOT_VIEW_INSTANCE = RootView()
+ROOT_VIEW = ft.View("/", [ft.AppBar(title=ft.Text("Welcome, learner!")), ROOT_VIEW_INSTANCE])
