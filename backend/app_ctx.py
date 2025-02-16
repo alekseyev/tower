@@ -7,6 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from backend.babble.models import babble_models
 from backend.core.models import core_models
 from backend.courses.models import courses_models
+from backend.dictionary.models import words_models
 from backend.settings import settings
 
 
@@ -18,7 +19,7 @@ class AppCtx:
         cls.mongo_client = AsyncIOMotorClient(settings.MONGO_URL)
         await init_beanie(
             database=cls.mongo_client[settings.MONGO_DB],
-            document_models=[*babble_models, *core_models, *courses_models],
+            document_models=[*babble_models, *core_models, *courses_models, *words_models],
         )
 
     @classmethod
