@@ -12,32 +12,32 @@ from backend.babble.babble import (
 )
 
 DICTIONARY = [
-    "Agua",
-    "Amigo",
-    "Aquí",
-    "Ayuda",
-    "Bien",
-    "Casa",
-    "Comida",
-    "Día",
-    "Favor",
-    "Gracias",
-    "Hacer",
-    "Hola",
-    "Hombre",
-    "Hoy",
-    "Mal",
-    "Mujer",
-    "Necesitar",
-    "No",
-    "Poder",
-    "Por",
-    "Sentir",
-    "Sí",
-    "Tiempo",
-    "Tu",
-    "Yo",
-    "Él",
+    "agua",
+    "amigo",
+    "aquí",
+    "ayuda",
+    "bien",
+    "casa",
+    "comida",
+    "día",
+    "favor",
+    "gracias",
+    "hacer",
+    "hola",
+    "hombre",
+    "hoy",
+    "mal",
+    "mujer",
+    "necesitar",
+    "no",
+    "poder",
+    "por",
+    "sentir",
+    "sí",
+    "tiempo",
+    "tu",
+    "yo",
+    "él",
 ]
 
 
@@ -63,30 +63,30 @@ def generated_output_with_lemmas():
     return [
         BabbleSentence(
             text={"en": "Hello, my friend!", "es": "¡Hola, amigo!"},
-            lemmas={"en": ["Hello", "My", "Friend"], "es": ["Hola", "Amigo"]},
+            lemmas={"en": ["hello", "my", "friend"], "es": ["hola", "amigo"]},
         ),
         BabbleSentence(
             text={"en": "Thank you for your help.", "es": "Gracias por tu ayuda."},
-            lemmas={"en": ["Thank", "You", "For", "Your", "Help"], "es": ["Gracias", "Por", "Tu", "Ayuda"]},
+            lemmas={"en": ["thank", "you", "for", "your", "help"], "es": ["gracias", "por", "tu", "ayuda"]},
         ),
         BabbleSentence(
             text={"en": "Yes, I can do it.", "es": "Sí, puedo hacerlo."},
-            lemmas={"en": ["Yes", "I", "Can", "Do", "It"], "es": ["Sí", "Poder", "Hacer", "Él"]},
+            lemmas={"en": ["yes", "I", "can", "do", "it"], "es": ["sí", "poder", "hacer", "él"]},
         ),
         BabbleSentence(
             text={"en": "I feel good today.", "es": "Me siento bien hoy."},
-            lemmas={"en": ["I", "Feel", "Good", "Today"], "es": ["Yo", "Sentir", "Bien", "Hoy"]},
+            lemmas={"en": ["I", "feel", "good", "today"], "es": ["yo", "sentir", "bien", "hoy"]},
         ),
         BabbleSentence(
             text={"en": "I need water.", "es": "Necesito agua."},
-            lemmas={"en": ["I", "Need", "Water"], "es": ["Necesitar", "Agua"]},
+            lemmas={"en": ["I", "need", "water"], "es": ["necesitar", "agua"]},
         ),
     ]
 
 
-def assert_same_sentences(sentence1: list[BabbleSentence], sentence2: list[BabbleSentence]):
-    assert len(sentence1) == len(sentence2)
-    for a, b in zip(sentence1, sentence2):
+def assert_same_sentences(sentences1: list[BabbleSentence], sentences2: list[BabbleSentence]):
+    assert len(sentences1) == len(sentences2)
+    for a, b in zip(sentences1, sentences2):
         assert a.text == b.text
         assert a.lemmas == b.lemmas
 
@@ -107,7 +107,7 @@ async def test_get_sentences(generated_output_with_lemmas):
 async def test_get_from_db(generated_output_with_lemmas):
     await BabbleSentence.insert_many(generated_output_with_lemmas)
 
-    sentences = await get_from_db(dictionary=["Yo", "Sentir", "Bien", "Hoy"])
+    sentences = await get_from_db(dictionary=["yo", "sentir", "bien", "hoy"])
     assert_same_sentences(sentences, [generated_output_with_lemmas[3]])
 
 
@@ -115,7 +115,7 @@ async def test_get_from_db(generated_output_with_lemmas):
 async def test_skip_duplicates(generated_output_with_lemmas):
     await BabbleSentence(
         text={"en": "Hello, my friend!", "es": "¡Hola, amigo!"},
-        lemmas={"en": ["Hello", "My", "Friend"], "es": ["Hola", "Amigo"]},
+        lemmas={"en": ["hello", "my", "friend"], "es": ["hola", "amigo"]},
     ).save()
 
     result = await generate_and_save_sentences(DICTIONARY)

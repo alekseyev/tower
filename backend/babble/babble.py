@@ -23,35 +23,50 @@ logger.info(f"Loaded {len(nlp)} Spacy models in {time.perf_counter() - start:.6}
 
 
 EXCEPTIONS = {
-    "es": {"Hablas": "Hablar"},
+    "es": {"hablas": "hablar", "señoritar": "señorita"},
     "en": {},
+}
+
+FAKE_PROPNS = {
+    "es": ["Hola"],
+    "en": [],
 }
 
 
 STOP_WORDS = {
-    "es": ["Eh", "Coño", "Puta"],
+    "es": ["eh", "coño", "puta"],
     "en": [],
 }
 
 
 def process_exceptions(lang_code: str, word: str) -> str:
+    if word in FAKE_PROPNS[lang_code]:
+        return word.lower()
     return EXCEPTIONS.get(lang_code, {}).get(word, word)
 
 
-def lemmatize(lang_code: str, sentence: str, skip_propns: bool = False, skip_words: list | None = None) -> list[str]:
+def lemmatize(
+    lang_code: str,
+    sentence: str,
+    skip_propns: bool = False,
+    skip_words: list | None = None,
+) -> list[str]:
     if not skip_words:
         skip_words = STOP_WORDS.get(lang_code, [])
     doc = nlp[lang_code](sentence)
+    l_doc = nlp[lang_code](sentence.lower())
     lemmas = []
-    for token in doc:
-        if not token.is_alpha or skip_propns and token.pos_ == "PROPN":
+    for token, l_token in zip(doc, l_doc):
+        if not token.is_alpha:
             continue
-        lemmas += [
-            process_exceptions(lang_code, w)
-            for word in token.lemma_.split()
-            if (w := word.capitalize()) not in skip_words
-        ]
-    return [lemma.capitalize() for lemma in lemmas]
+        # Avoid wrongly detecting capitalized words as PROPN (e.g. Hola amigo -> hola should be VERB, not PROPN)
+        # Except this doesn't catch "hola", so we also have a list of fake propns
+        if token.pos_ == "PROPN" and token.lemma_[0].isupper() and l_token.pos_ != "PROPN":
+            token = l_token
+        if skip_propns and token.pos_ == "PROPN" and token.lemma_ not in FAKE_PROPNS[lang_code]:
+            continue
+        lemmas += [process_exceptions(lang_code, word) for word in token.lemma_.split() if word not in skip_words]
+    return lemmas
 
 
 class GPTSentences:
@@ -165,7 +180,7 @@ class GPTSentences:
 
 async def generate_babble(
     dictionary: list[str],
-    req_dictionary: Optional[list[str]] = None,
+    req_dictionary: list[str] | None = None,
     base_language: str = "es",
     N: int = 40,
     source_class: Type = GPTSentences,
@@ -177,12 +192,15 @@ async def generate_babble(
         N=N,
         base_language=base_language,
     )
+    full_dictionary = dictionary
+    if req_dictionary:
+        full_dictionary = dictionary + req_dictionary
 
     start = time.perf_counter()
     result = [
         BabbleSentence(
             text={lang: sentence for lang, sentence in sentence.items()},
-            lemmas={lang: lemmatize(lang, sentence) for lang, sentence in sentence.items()},
+            lemmas={lang: lemmatize(lang, sentence, full_dictionary) for lang, sentence in sentence.items()},
         )
         for sentence in sentences
     ]
