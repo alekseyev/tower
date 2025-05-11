@@ -12,32 +12,32 @@ async def test_get_user_stats(http_client, user, auth_headers):
             "es": LanguageData(
                 courses=["casa.s01e01"],
                 words={
-                    "Saber": WordData(  # new word
+                    "saber": WordData(  # new word
                         seen_times=1,
                         last_seen_ts=1000,
                         correctness_rate=100,
                     ),
-                    "Pensar": WordData(  # new word
+                    "pensar": WordData(  # new word
                         seen_times=2,
                         last_seen_ts=1000,
                         correctness_rate=100,
                     ),
-                    "El": WordData(  # normal word
+                    "el": WordData(  # normal word
                         last_seen_ts=999,
                         seen_times=10,
                         correctness_rate=90,
                     ),
-                    "Que": WordData(  # normal word
+                    "que": WordData(  # normal word
                         seen_times=10,
                         last_seen_ts=999,
                         correctness_rate=90,
                     ),
-                    "Ver": WordData(  # word needs practice (error rate)
+                    "ver": WordData(  # word needs practice (error rate)
                         seen_times=10,
                         last_seen_ts=999,
                         correctness_rate=70,
                     ),
-                    "Decir": WordData(  # word not encountered for too long
+                    "decir": WordData(  # word not encountered for too long
                         seen_times=10,
                         last_seen_ts=1,
                         correctness_rate=90,
