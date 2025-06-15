@@ -9,6 +9,7 @@ from loguru import logger
 
 from backend.app_ctx import get_application_ctx
 from backend.core.models import User
+from backend.dictionary.words import generate_and_save_translations, get_translations_from_db
 
 app = typer.Typer()
 
@@ -71,16 +72,16 @@ async def generate_base_sentences(lang: str = "es"):
 
 @app.command()
 @coro
-async def generate_course_sentences(filename: str, lang: str = "es"):
+async def generate_course_sentences(course: str, lang: str = "es", limit: int = 1000):
     from backend.babble.babble import get_sentences
 
     with open(f"{lang}/base.json", "r") as f:
         base_dict = json.load(f)
 
-    with open(filename, "r") as f:
+    with open(f"{lang}/{course}.json", "r") as f:
         course_data = json.load(f)
 
-    course_words = list(course_data.keys())
+    course_words = list(course_data.keys())[:limit]
 
     logger.info(f"Generating sentences for {lang}: {len(base_dict)} base words, {len(course_words)} course words")
 
@@ -102,6 +103,32 @@ async def generate_course_sentences(filename: str, lang: str = "es"):
             total += len(result)
 
     logger.info(f"{len(result)} correct sentences generated")
+
+
+@app.command()
+@coro
+async def get_translations(course: str, lang: str = "es", limit: int = 1000):
+    with open(f"{lang}/{course}.json", "r") as f:
+        course_data = json.load(f)
+
+    course_words = list(course_data.keys())[:limit]
+
+    logger.info(f"Generating translations for {lang}: {len(course_words)} course words")
+
+    async with get_application_ctx():
+        for i, word in enumerate(course_words):
+            from_api = False
+            translations = await get_translations_from_db(word, lang, "en")
+            while translations is None:
+                from_api = True
+                try:
+                    translations = await generate_and_save_translations(word, lang, "en")
+                except Exception as e:
+                    logger.warning(f"Error: {e}")
+                    await asyncio.sleep(60)
+            logger.info(f"{i: 3}. {word}: {', '.join(translations)}")
+            if from_api:
+                await asyncio.sleep(1800)
 
 
 @app.command()
