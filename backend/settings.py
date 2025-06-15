@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     AUTH_SECRET: str = "secret"
 
     GPT_TOKEN: str = secrets["openai_token"]
-    GPT_MODEL: str = "gpt-3.5-turbo"
+    GPT_MODEL: str = "gpt-4.1-mini"
 
     SPACY_MODELS: dict[str, str] = {
         "en": "en_core_web_sm",

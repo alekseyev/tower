@@ -10,8 +10,6 @@ from loguru import logger
 from backend.babble.models import BabbleSentence
 from backend.settings import settings
 
-openai.api_key = settings.GPT_TOKEN
-
 json_pattern = re.compile(r"```(?:json)?(.*?)```", re.DOTALL)
 
 
@@ -121,7 +119,8 @@ class GPTSentences:
         )
 
         start = time.perf_counter()
-        completion = await openai.ChatCompletion.acreate(
+        client = openai.AsyncOpenAI(api_key=settings.GPT_TOKEN)
+        completion = await client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": "You are a language tutor"},
@@ -132,13 +131,16 @@ class GPTSentences:
             ],
         )
         usage = completion.usage
-        response_message = completion["choices"][0]["message"]
+        response_message = completion.choices[0].message
 
         hacks = []
 
-        if response_message.get("function_call"):
+        if response_message.tool_calls:
+            content = response_message.tool_calls[0].function.arguments
+            hacks.append("tool_calls")
+        elif response_message.function_call:
             content = response_message.function_call.arguments
-            hacks.append("function_args")
+            hacks.append("function_call")
         else:
             content = response_message.content
             hacks.append("content")

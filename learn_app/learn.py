@@ -39,7 +39,7 @@ def get_stats_text() -> str:
     if course_data is None:
         return "Waiting for Data"
     data = course_data.languages[lang]
-    c_data = get_course_data(lang, "casa.s01e01")
+    c_data = get_course_data(lang, "casa")
     encountered = len(data.words)
     learned = len([word for word in data.words if word in c_data])
     practiced = len([word for word in data.words if word in c_data and data.words[word].seen_times > 1])
