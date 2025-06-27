@@ -137,4 +137,11 @@ class NewWordsRequest(BaseModel):
     course: str
 
 
+class Exercise(BaseModel):
+    type: str
+    sentence: BabbleSentence
+    base_lang: str
+    dictionary: dict[str, list[str]]
+
+
 courses_models = [UserProgress]

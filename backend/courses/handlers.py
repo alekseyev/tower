@@ -6,7 +6,8 @@ from pydantic import BaseModel
 
 from backend.babble.models import BabbleSentence
 from backend.courses.courses import get_course_data
-from backend.courses.models import ExerciseResult, NewWordsRequest, UserProgress
+from backend.courses.models import Exercise, ExerciseResult, NewWordsRequest, UserProgress
+from backend.dictionary.models import DICTIONARIES
 
 
 class WordsStats(BaseModel):
@@ -51,9 +52,21 @@ async def get_user_stats(user_id: str) -> dict[str, dict[str, WordsStats]]:
 
 
 @get("/user/{user_id:str}/exercises")
-async def get_user_exercises(user_id: str, lang: str) -> list[BabbleSentence]:
+async def get_user_exercises(user_id: str, lang: str) -> list[Exercise]:
     user_progress = await UserProgress.get(user_id)
-    return await user_progress.get_sentences(lang)
+    sentences = await user_progress.get_sentences(lang)
+    all_words = sum((sentence.lemmas[lang] for sentence in sentences), start=[])
+    all_translations = await DICTIONARIES[lang].find({"_id": {"$in": all_words}}).to_list()
+    full_dict = {translation.id: translation.translations["en"] for translation in all_translations}
+    return [
+        Exercise(
+            type="word_bank",
+            sentence=sentence,
+            base_lang=lang,
+            dictionary={word: full_dict[word] for word in sentence.lemmas[lang] if word in full_dict},
+        )
+        for sentence in sentences
+    ]
 
 
 @post("/exercise/result")

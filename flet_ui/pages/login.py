@@ -33,6 +33,7 @@ class LoginForm(ft.Column):
         result = await self.page.client.login(self.edit_email.value, self.edit_password.value)
         if result:
             logger.info("successful login")
+            self.status.style = ft.TextStyle(color=ft.colors.GREEN)
             self.status.value = "Success, logging in..."
             self.update()
             self._token = result
@@ -40,6 +41,7 @@ class LoginForm(ft.Column):
             self.page.go("/")
         else:
             logger.info("incorrect login")
+            self.status.style = ft.TextStyle(color=ft.colors.RED)
             self.status.value = "Incorrect login"
             self.update()
 

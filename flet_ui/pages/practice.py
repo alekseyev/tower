@@ -27,8 +27,10 @@ class PracticeView(ft.Column):
                 )
             ],
         )
-        self.action_button = ft.FilledButton("Check", on_click=self.check)
         self.result_text = ft.Text("")
+        self.action_button = ft.FilledButton("Check", on_click=self.check)
+        self.dictionary_button = ft.OutlinedButton("Dictionary", on_click=self.trigger_dictionary)
+        self.dictionary = ft.Markdown("")
         self.button_home = ft.FilledButton("Return home", on_click=self.go_home)
 
         self.controls = [
@@ -36,8 +38,13 @@ class PracticeView(ft.Column):
             ft.Container(content=self.word_bank_buttons, height=100),
             self.result_row,
             self.result_text,
-            self.action_button,
-            ft.Container(expand=True, content=ft.Text(" ")),
+            ft.Row(
+                [
+                    self.action_button,
+                    self.dictionary_button,
+                ]
+            ),
+            ft.Container(expand=True, content=ft.Column([self.dictionary], scroll=ft.ScrollMode.AUTO, expand=True)),
             ft.Divider(),
             self.button_home,
         ]
@@ -52,6 +59,7 @@ class PracticeView(ft.Column):
         self.action_button.text = "Check"
         self.action_button.on_click = self.check
         self.action_button.visible = False
+        self.dictionary_button.visible = False
         self.update()
 
     def did_mount(self):
@@ -76,12 +84,16 @@ class PracticeView(ft.Column):
         self.init_controls()
         self.current_exercise += 1
         exercise = self.exercises[self.current_exercise]
-        words = exercise["text"]["es"].split()
+        words = exercise["sentence"]["text"]["es"].split()
         random.shuffle(words)
         self.top_message.value = (
             f"[{self.current_exercise + 1}/{len(self.exercises)}] Translate to Spanish:  \n"
-            f"**{exercise['text']['en']}**"
+            f"**{exercise["sentence"]['text']['en']}**"
         )
+        self.dictionary.value = "\n\n".join(
+            [f"**{word}** - {', '.join(translations)}" for word, translations in exercise["dictionary"].items()]
+        )
+        self.dictionary.visible = False
         self.word_bank_buttons.controls = []
         for word in words:
             button = ft.ElevatedButton(word)
@@ -90,6 +102,7 @@ class PracticeView(ft.Column):
         self.result_row.visible = True
         self.result_buttons.controls = []
         self.action_button.visible = True
+        self.dictionary_button.visible = True
         self.update()
 
     def go_home(self, *args, **kwargs):
@@ -113,6 +126,10 @@ class PracticeView(ft.Column):
             self.update()
 
         return on_result_bank_click
+
+    def trigger_dictionary(self, *args, **kwargs):
+        self.dictionary.visible = not self.dictionary.visible
+        self.update()
 
     def check(self, *args, **kwargs):
         result_text = " ".join(button.text for button in self.result_buttons.controls)
