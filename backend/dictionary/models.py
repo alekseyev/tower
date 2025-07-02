@@ -1,13 +1,23 @@
 from beanie import Document
+from pydantic import BaseModel, Field
 
 from backend.settings import settings
 
 DICTIONARIES = {}
 
 
+class IdOnlyView(BaseModel):
+    id: str = Field(alias="_id")
+
+
 class BaseDictionary(Document):
     id: str
     translations: dict[str, list[str]]  # {"en": ["the", "he"]}
+
+    @classmethod
+    async def get_all_words(cls) -> list[str]:
+        data = await cls.find_all().project(IdOnlyView).to_list()
+        return [doc.id for doc in data]
 
 
 class EnglishDictionary(BaseDictionary):

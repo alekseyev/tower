@@ -23,5 +23,8 @@ tui_devconsole: ## Run dev console
 flet_run: ## run flet based GUI
 	PYTHONPATH="." flet run -d -r flet_ui
 
+admin: ## Run admin backend
+	python -m backend.admin.main
+
 help: ## Display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n\nTargets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
