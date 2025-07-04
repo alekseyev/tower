@@ -4,9 +4,10 @@ from beanie.operators import In
 from litestar import get, post
 from pydantic import BaseModel
 
+from backend.babble.babble import get_sentences
 from backend.babble.models import BabbleSentence
 from backend.courses.courses import get_course_data
-from backend.courses.models import Exercise, ExerciseResult, NewWordsRequest, UserProgress
+from backend.courses.models import Exercise, ExerciseResult, UserProgress
 from backend.dictionary.models import DICTIONARIES
 
 
@@ -63,10 +64,47 @@ async def get_user_exercises(user_id: str, lang: str) -> list[Exercise]:
             type="word_bank",
             sentence=sentence,
             base_lang=lang,
-            dictionary={word: full_dict[word] for word in sentence.lemmas[lang] if word in full_dict},
+            dictionary={word: full_dict[word] for word in set(sentence.lemmas[lang]) if word in full_dict},
         )
         for sentence in sentences
     ]
+
+
+@get("/user/{user_id:str}/exercises/new_words")
+async def get_user_exercises_new_words(
+    user_id: str, lang: str, course: str, N: int = 4, exercises_per_word: int = 2
+) -> list[Exercise]:
+    user_progress = await UserProgress.get(user_id)
+    new_words = user_progress.get_new_words(lang, course, N)
+
+    sentences = {}
+    for word in new_words:
+        sentences[word] = await get_sentences(
+            dictionary=list(user_progress.languages[lang].words.keys()),
+            req_dictionary=[word],
+            base_language=lang,
+            exclude_ids=user_progress.languages[lang].last_exercises,
+            N=exercises_per_word,
+        )
+
+    all_words = sum((sentence.lemmas[lang] for ss in sentences.values() for sentence in ss), start=[])
+    full_dict = await DICTIONARIES[lang].get_translations(all_words)
+
+    exercises = []
+
+    for word, sentences in sentences.items():
+        for i, sentence in enumerate(sentences):
+            exercises.append(
+                Exercise(
+                    type="word_bank",
+                    sentence=sentence,
+                    base_lang=lang if not (i % 2) else "NATIVE",
+                    dictionary={word: full_dict[word] for word in set(sentence.lemmas[lang]) if word in full_dict},
+                    new_word=word,
+                )
+            )
+
+    return exercises
 
 
 @post("/exercise/result")
@@ -86,13 +124,4 @@ async def save_exercise_result(data: ExerciseResult) -> dict:
     return {"result": "ok"}
 
 
-@post("/exercise/new_words")
-async def add_new_words(data: NewWordsRequest) -> list[str]:
-    user_progress = await UserProgress.get(data.user_id)
-    new_words = user_progress.get_new_words(data.lang, data.course)
-    user_progress.languages[data.lang].add_new_words(new_words)
-    await user_progress.save()
-    return new_words
-
-
-user_handlers = [get_user_stats, get_user_exercises, save_exercise_result, add_new_words]
+user_handlers = [get_user_stats, get_user_exercises, get_user_exercises_new_words, save_exercise_result]

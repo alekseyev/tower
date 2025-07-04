@@ -134,7 +134,7 @@ class PracticeView(ft.Column):
     def check(self, *args, **kwargs):
         result_text = " ".join(button.text for button in self.result_buttons.controls)
         exercise = self.exercises[self.current_exercise]
-        correct_text = exercise["text"]["es"]
+        correct_text = exercise["sentence"]["text"]["es"]
         correct = result_text == correct_text
         if correct:
             self.result_text.color = ft.colors.GREEN
@@ -142,7 +142,7 @@ class PracticeView(ft.Column):
         else:
             self.result_text.color = ft.colors.RED
             self.result_text.value = f"Incorrect! Translation: {correct_text}"
-        self.results[exercise["id"]] = correct
+        self.results[exercise["sentence"]["id"]] = correct
         if len(self.results) < len(self.exercises):
             self.action_button.text = "Next"
             self.action_button.on_click = self.next_exercise

@@ -289,7 +289,7 @@ async def get_from_db(
     N: int = 10,
     exclude_ids: list[str] | None = None,
 ) -> list[BabbleSentence]:
-    subqueries = [{"$expr": {"$setIsSubset": [f"$lemmas.{base_language}", dictionary]}}]
+    subqueries = [{"$expr": {"$setIsSubset": [f"$lemmas.{base_language}", dictionary + (req_dictionary or [])]}}]
     if exclude_ids:
         subqueries.append({"_id": {"$nin": exclude_ids}})
     if req_dictionary:
@@ -315,7 +315,7 @@ async def generate_and_save_sentences(
         if req_dictionary:
             present = set(req_dictionary) & set(s.lemmas[base_language]) == set(req_dictionary)
             logger.info(f"Required dictionary {present=}")
-        extra = set(s.lemmas[base_language]) - set(dictionary)
+        extra = set(s.lemmas[base_language]) - set(dictionary) - set(req_dictionary or [])
         logger.info(f"Extra words: {extra}")
 
     found_sentences_result = await BabbleSentence.find(

@@ -27,7 +27,7 @@ class LearnClient:
                 kwargs["json"] = params or {}
             if self.auth_headers:
                 kwargs["headers"] = self.auth_headers
-            response = await client.request(method, url, **kwargs)
+            response = await client.request(method, url, timeout=120, **kwargs)
 
             if raise_for_auth and response.status_code == 401:
                 raise NotAuthenticated()
@@ -60,11 +60,11 @@ class LearnClient:
         code, data = await self.request("GET", f"/user/{user_id}/exercises", params={"lang": lang})
         return data
 
-    async def save_exercise_result(self, user_id: str, lang: str, results: dict[str, bool]):
-        await self.request("POST", "/exercise/result", {"user_id": user_id, "lang": lang, "results": results})
-
-    async def get_new_words(self, user_id: str, lang: str, course: str) -> list[str]:
+    async def get_exercises_new_words(self, user_id: str, lang: str, course: str) -> list:
         code, data = await self.request(
-            "POST", "/exercise/new_words", {"user_id": user_id, "lang": lang, "course": course}
+            "GET", f"/user/{user_id}/exercises/new_words", params={"lang": lang, "course": course}
         )
         return data
+
+    async def save_exercise_result(self, user_id: str, lang: str, results: dict[str, bool]):
+        await self.request("POST", "/exercise/result", {"user_id": user_id, "lang": lang, "results": results})

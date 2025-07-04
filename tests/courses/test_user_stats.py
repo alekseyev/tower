@@ -10,7 +10,7 @@ async def test_get_user_stats(http_client, user, auth_headers):
         id=user.id,
         languages={
             "es": LanguageData(
-                courses=["casa.s01e01"],
+                courses=["casa"],
                 words={
                     "saber": WordData(  # new word
                         seen_times=1,
@@ -53,7 +53,7 @@ async def test_get_user_stats(http_client, user, auth_headers):
 
     assert response.json() == {
         "es": {
-            "casa.s01e01": {
+            "casa": {
                 "bad": 1,
                 "encountered": 6,
                 "exercises": 0,

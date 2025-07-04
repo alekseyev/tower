@@ -19,6 +19,11 @@ class BaseDictionary(Document):
         data = await cls.find_all().project(IdOnlyView).to_list()
         return [doc.id for doc in data]
 
+    @classmethod
+    async def get_translations(cls, words: list[str], to_lang: str = "en") -> dict[str, list[str]]:
+        data = await cls.find({"_id": {"$in": words}}).to_list()
+        return {translation.id: translation.translations[to_lang] for translation in data}
+
 
 class EnglishDictionary(BaseDictionary):
     class Settings:

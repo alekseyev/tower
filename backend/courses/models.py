@@ -98,12 +98,12 @@ class UserProgress(Document):
     id: UUID
     languages: dict[str, LanguageData] = {}
 
-    def get_new_words(self, lang: str, course: str) -> list[str]:
+    def get_new_words(self, lang: str, course: str, N: int = 5) -> list[str]:
         if lang not in self.languages:
             self.languages[lang] = LanguageData()
             self.languages[lang].add_new_words(get_base_words(lang))
         current_words = list(self.languages[lang].words.keys())
-        return get_new_words(lang, course, current_words)
+        return get_new_words(lang, course, current_words, N=N)
 
     async def get_sentences(self, lang: str, N: int = EXERCISES_PER_LESSON) -> list[BabbleSentence]:
         from backend.babble.babble import get_sentences
@@ -139,9 +139,11 @@ class NewWordsRequest(BaseModel):
 
 class Exercise(BaseModel):
     type: str
-    sentence: BabbleSentence
+    sentence: BabbleSentence | None
     base_lang: str
     dictionary: dict[str, list[str]]
+    new_word: str | None = None
+    matches: dict[str, str] = {}
 
 
 courses_models = [UserProgress]
