@@ -1,4 +1,4 @@
-from backend.babble.babble import lemmatize
+from backend.babble.lemmas import lemmatize
 
 
 def test_lemmatize():
