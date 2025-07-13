@@ -74,15 +74,15 @@ class LanguageData(BaseModel):
     def suggest_words_to_practice(self, N: int = WORDS_TO_PRACTICE_PER_LESSON) -> set[str]:
         suggested = set()
 
-        # 1. New words (seen count < 5)
-        new_words = sorted(self.get_new_words(), key=lambda w: self.words[w].seen_times, reverse=True)
-        while len(suggested) < N and new_words:
-            suggested.add(new_words.pop())
-
-        # 2. Bad corretness rate
+        # 1. Bad corretness rate
         bad_words = sorted(self.get_bad_words(), key=lambda w: self.words[w].correctness_rate, reverse=True)
         while len(suggested) < N and bad_words:
             suggested.add(bad_words.pop())
+
+        # 2. New words (seen count < 5)
+        new_words = sorted(self.get_new_words(), key=lambda w: self.words[w].seen_times, reverse=True)
+        while len(suggested) < N and new_words:
+            suggested.add(new_words.pop())
 
         # 3. Last seen
         if len(suggested) < N:
@@ -115,7 +115,7 @@ class UserProgress(Document):
                 dictionary=list(self.languages[lang].words.keys()),
                 req_dictionary=[word],
                 base_language=lang,
-                exclude_ids=self.languages[lang].last_exercises,
+                exclude_ids=self.languages[lang].last_exercises + [sentence.id for sentence in sentences],
                 N=N // len(suggested),
             )
 
