@@ -60,6 +60,7 @@ class PracticeView(ft.Column):
         self.action_button.on_click = self.check
         self.action_button.visible = False
         self.dictionary_button.visible = False
+        self.dictionary.visible = False
         self.update()
 
     def did_mount(self):

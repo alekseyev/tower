@@ -43,8 +43,7 @@ class RootView(ft.Column):
         stats = user_stats[LANG][COURSE]
         self.status.value = (
             f"Words encountered from course {perc(stats['encountered'], stats['total_count'])}  \n"
-            f"Words practiced {perc(stats['practiced'], stats['total_count'])}  \n"
-            f"Bad words {perc(stats['bad'], stats['total_count'])}  \n"
+            f"Bad words {perc(stats['bad'], stats['encountered'])}  \n"
             f"Understanding rate {stats['understanding_rate']}%  \n"
             f"Total exercises: {stats['exercises']}  \n"
         )

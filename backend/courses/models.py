@@ -68,7 +68,7 @@ class LanguageData(BaseModel):
         # Return new words (seen count < 5)
         return set(word for word, data in self.words.items() if data.seen_times < max_seen_count)
 
-    def get_bad_words(self, max_correctness_rate=85) -> set[str]:
+    def get_bad_words(self, max_correctness_rate=70) -> set[str]:
         return set(word for word, data in self.words.items() if data.correctness_rate < max_correctness_rate)
 
     def suggest_words_to_practice(self, N: int = WORDS_TO_PRACTICE_PER_LESSON) -> set[str]:
@@ -79,12 +79,12 @@ class LanguageData(BaseModel):
         while len(suggested) < N and bad_words:
             suggested.add(bad_words.pop())
 
-        # 2. New words (seen count < 5)
-        new_words = sorted(self.get_new_words(), key=lambda w: self.words[w].seen_times, reverse=True)
+        # 2. New words (seen count < 5) - up to 50% of total amount
+        new_words = sorted(self.get_new_words(), key=lambda w: self.words[w].seen_times, reverse=True)[: N // 2]
         while len(suggested) < N and new_words:
             suggested.add(new_words.pop())
 
-        # 3. Last seen
+        # 3. Longest not seen
         if len(suggested) < N:
             words = sorted(self.words.keys(), key=lambda w: self.words[w].last_seen_ts, reverse=True)
 

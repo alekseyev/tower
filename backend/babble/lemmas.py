@@ -13,7 +13,7 @@ logger.info(f"Loaded {len(nlp)} Spacy models in {time.perf_counter() - start:.6}
 
 
 EXCEPTIONS = {
-    "es": {"hablas": "hablar", "señoritar": "señorita"},
+    "es": {"hablas": "hablar", "señoritar": "señorita", "vas": "ir"},
     "en": {},
 }
 
