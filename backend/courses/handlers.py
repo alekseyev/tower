@@ -14,7 +14,7 @@ from backend.dictionary.models import DICTIONARIES
 class WordsStats(BaseModel):
     total_count: int
     encountered: int
-    practiced: int
+    new: int
     bad: int
     understanding_rate: int
     exercises: int
@@ -33,8 +33,8 @@ async def get_user_stats(user_id: str) -> dict[str, dict[str, WordsStats]]:
             total_count = len(c_data)
 
             encountered = len([word for word in lang_data.words if word in c_data])
-            practiced = len(
-                [word for word, w_data in lang_data.words.items() if word in c_data and w_data.seen_times > 1]
+            new_words = len(
+                [word for word, w_data in lang_data.words.items() if word in c_data and w_data.seen_times < 5]
             )
             bad = len([word for word in lang_data.get_bad_words() if word in c_data])
             understanding_count = sum(c_data[word] for word in lang_data.words if word in c_data)
@@ -43,7 +43,7 @@ async def get_user_stats(user_id: str) -> dict[str, dict[str, WordsStats]]:
             result[lang][course] = WordsStats(
                 total_count=total_count,
                 encountered=encountered,
-                practiced=practiced,
+                new=new_words,
                 bad=bad,
                 understanding_rate=int(understanding_count / total * 100),
                 exercises=lang_data.total_exercises,

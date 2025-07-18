@@ -113,6 +113,7 @@ class PracticeView(ft.Column):
     def get_handler_on_word_bank_button_click(self, button: ft.ElevatedButton):
         def on_word_bank_click(*args, **kwargs):
             button.opacity = 0
+            button.disabled = True
             result_button = ft.ElevatedButton(button.text)
             result_button.on_click = self.get_handler_on_result_button_click(result_button, button)
             self.result_buttons.controls.append(result_button)
@@ -124,6 +125,7 @@ class PracticeView(ft.Column):
         def on_result_bank_click(*args, **kwargs):
             self.result_buttons.controls.remove(button)
             word_bank_button.opacity = 1
+            word_bank_button.disabled = False
             self.update()
 
         return on_result_bank_click

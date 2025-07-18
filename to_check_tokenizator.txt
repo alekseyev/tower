@@ -3,3 +3,6 @@ hablas/hablar
 eh
 Señorita Parker
 
+
+mando/mandar
+
