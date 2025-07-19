@@ -4,13 +4,14 @@ import flet as ft
 from loguru import logger
 
 from flet_ui.client import NotAuthenticated
-from flet_ui.pages.const import LANG
+from flet_ui.pages.const import COURSE, LANG
 from flet_ui.pages.root import ROOT_VIEW_INSTANCE
 
 
 class PracticeView(ft.Column):
-    def __init__(self):
+    def __init__(self, learn_new_words: bool = False):
         super().__init__(expand=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
+        self.learn_new_words = learn_new_words
         self.current_exercise = -1
         self.results = {}
         self.top_message = ft.Markdown("Loading...")
@@ -76,7 +77,12 @@ class PracticeView(ft.Column):
             return
         self.user_id = data["id"]
         self.page.state.user_id = self.user_id
-        self.exercises = await self.page.client.get_exercises(self.user_id, LANG)
+        if self.learn_new_words:
+            logger.info("Loading exercises with new words...")
+            self.exercises = await self.page.client.get_exercises_new_words(self.user_id, LANG, COURSE)
+        else:
+            logger.info("Loading practice exercises...")
+            self.exercises = await self.page.client.get_exercises(self.user_id, LANG)
         self.current_exercise = -1
         self.results = {}
         self.next_exercise()
@@ -87,8 +93,12 @@ class PracticeView(ft.Column):
         exercise = self.exercises[self.current_exercise]
         words = exercise["sentence"]["text"]["es"].split()
         random.shuffle(words)
+        new_word_bit = ""
+        if new_word := exercise["new_word"]:
+            translations = exercise["dictionary"].get(new_word, ["translation not found"])
+            new_word_bit = f"New word: **{new_word}** - {', '.join(translations)}.  \n"
         self.top_message.value = (
-            f"[{self.current_exercise + 1}/{len(self.exercises)}] Translate to Spanish:  \n"
+            f"[{self.current_exercise + 1}/{len(self.exercises)}] {new_word_bit}Translate to Spanish:  \n"
             f"**{exercise["sentence"]['text']['en']}**"
         )
         self.dictionary.value = "\n\n".join(
@@ -161,3 +171,4 @@ class PracticeView(ft.Column):
 
 
 PRACTICE_VIEW = ft.View("/practice", [ft.AppBar(title=ft.Text("Exercise")), PracticeView()])
+NEW_WORDS_VIEW = ft.View("/new_words", [ft.AppBar(title=ft.Text("New words")), PracticeView(learn_new_words=True)])
