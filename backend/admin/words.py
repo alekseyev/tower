@@ -33,7 +33,7 @@ async def words_page(lang: str, search: str = ""):
     if not search:
         query = words_model.find_all()
     else:
-        query = words_model.find({"_id": search})
+        query = words_model.find({"$or": [{"_id": search}, {"normalized": search}]})
 
     with ui.grid(columns=1 + (len(DICTIONARIES) - 1)):
         ui.label(lang.upper())
