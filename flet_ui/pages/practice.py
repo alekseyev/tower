@@ -91,15 +91,18 @@ class PracticeView(ft.Column):
         self.init_controls()
         self.current_exercise += 1
         exercise = self.exercises[self.current_exercise]
-        words = exercise["sentence"]["text"]["es"].split()
+        target = "English" if exercise.get("base_lang", LANG) == LANG else "Spanish"
+        exercise_lang = "es" if exercise.get("base_lang", LANG) == LANG else "en"
+        self.target_lang = "en" if exercise.get("base_lang", LANG) == LANG else "es"
+        words = exercise["sentence"]["text"][self.target_lang].split()
         random.shuffle(words)
         new_word_bit = ""
         if new_word := exercise["new_word"]:
             translations = exercise["dictionary"].get(new_word, ["translation not found"])
             new_word_bit = f"New word: **{new_word}** - {', '.join(translations)}.  \n"
         self.top_message.value = (
-            f"[{self.current_exercise + 1}/{len(self.exercises)}] {new_word_bit}Translate to Spanish:  \n"
-            f"**{exercise["sentence"]['text']['en']}**"
+            f"[{self.current_exercise + 1}/{len(self.exercises)}] {new_word_bit}Translate to {target}:  \n"
+            f"**{exercise["sentence"]['text'][exercise_lang]}**"
         )
         self.dictionary.value = "\n\n".join(
             [f"**{word}** - {', '.join(translations)}" for word, translations in exercise["dictionary"].items()]
@@ -147,7 +150,7 @@ class PracticeView(ft.Column):
     def check(self, *args, **kwargs):
         result_text = " ".join(button.text for button in self.result_buttons.controls)
         exercise = self.exercises[self.current_exercise]
-        correct_text = exercise["sentence"]["text"]["es"]
+        correct_text = exercise["sentence"]["text"][self.target_lang]
         correct = result_text == correct_text
         if correct:
             self.result_text.color = ft.colors.GREEN

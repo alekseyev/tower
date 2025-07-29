@@ -2,6 +2,7 @@ import time
 from uuid import UUID
 
 from beanie import Document
+from loguru import logger
 from pydantic import BaseModel
 
 from backend.babble.models import BabbleSentence
@@ -49,7 +50,6 @@ class LanguageData(BaseModel):
         for word in words:
             if word not in self.words:
                 self.words[word] = WordData()
-            self.words[word].add_seen()
 
     def add_exercise(self, id: UUID, words: list[str], correct: bool = True):
         ts = int(time.time())
@@ -58,7 +58,8 @@ class LanguageData(BaseModel):
         self.last_exercise_ts = ts
         self.total_exercises += 1
         new_words = [word for word in words if word not in self.words]
-        self.add_new_words(new_words)
+        if new_words:
+            self.add_new_words(new_words)
         for word in words:
             self.words[word].add_seen(correct)
         self.last_exercises.append(id)
@@ -72,24 +73,23 @@ class LanguageData(BaseModel):
         return set(word for word, data in self.words.items() if data.correctness_rate < max_correctness_rate)
 
     def suggest_words_to_practice(self, N: int = WORDS_TO_PRACTICE_PER_LESSON) -> set[str]:
-        suggested = set()
+        # 1. Longest not seen - up to 50% of total amount
+        words = sorted(
+            self.words.keys(),
+            key=lambda w: self.words[w].last_seen_ts,
+        )
+        long_no_seen_words = words[: N // 2]
+        logger.info(f"Words longest not seen for practice: {long_no_seen_words}")
+        suggested = set(long_no_seen_words)
 
-        # 1. Bad corretness rate
-        bad_words = sorted(self.get_bad_words(), key=lambda w: self.words[w].correctness_rate, reverse=True)
-        while len(suggested) < N and bad_words:
-            suggested.add(bad_words.pop())
-
-        # 2. New words (seen count < 5) - up to 50% of total amount
-        new_words = sorted(self.get_new_words(), key=lambda w: self.words[w].seen_times, reverse=True)[: N // 2]
-        while len(suggested) < N and new_words:
-            suggested.add(new_words.pop())
-
-        # 3. Longest not seen
-        if len(suggested) < N:
-            words = sorted(self.words.keys(), key=lambda w: self.words[w].last_seen_ts, reverse=True)
-
-            while len(suggested) < N:
-                suggested.add(words.pop())
+        # 2. New words (the least amount seen, starting from oldest introduced)
+        words = sorted(
+            [word for word in self.words.keys() if word not in suggested],
+            key=lambda w: (self.words[w].seen_times, self.words[w].first_seen_ts),
+        )
+        new_words = words[: N - len(suggested)]
+        logger.info(f"Least seen new words for practice: {new_words}")
+        suggested |= set(new_words)
 
         return suggested
 

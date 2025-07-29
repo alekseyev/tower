@@ -233,7 +233,7 @@ class LearnApp(App):
     async def on_mount(self) -> None:
         await AppCtx.start()
         await init_data()
-        from backend.babble.babble import nlp
+        from backend.babble.lemmas import nlp
 
         self.log(f"{len(nlp)} nlp models available")
 
